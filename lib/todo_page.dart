@@ -34,7 +34,7 @@ class _TodoPageState extends State<TodoPage> {
     return Scaffold(
       appBar: AppBar(
         title: const Text(
-          'Yapılacaklar',
+          'To-Do',
           style: TextStyle(
             fontWeight: FontWeight.bold,
             fontSize: 24,
@@ -58,7 +58,7 @@ class _TodoPageState extends State<TodoPage> {
                   controller: _textController,
                   textAlign: TextAlign.center,
                   decoration: const InputDecoration(
-                    hintText: 'Yeni bir yapılacak ekle',
+                    hintText: 'Yeni bir To-Do ekle',
                     border: InputBorder.none,
                   ),
                 ),
@@ -96,7 +96,6 @@ class _TodoPageState extends State<TodoPage> {
                 ),
                 child: Text(
                   _isCalendarOpen ? 'Ekle' : 'Takvime Ekle',
-                  style: const TextStyle(fontSize: 18),
                 ),
               ),
             ),
@@ -108,20 +107,17 @@ class _TodoPageState extends State<TodoPage> {
                     itemCount: appData.todos.length,
                     itemBuilder: (context, index) {
                       final todo = appData.todos[index];
-                      final eventDate = appData.events.entries.firstWhere(
-                        (element) => element.value.any((e) => e['title'] == todo),
-                        orElse: () => MapEntry(null, []),
-                      ).key;
-                      return Card(
-                        color: Colors.white,
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(15),
-                        ),
+                      DateTime? eventDate;
+                      for (var date in appData.events.keys) {
+                        if (appData.events[date]!.any((event) => event['title'] == todo)) {
+                          eventDate = date;
+                          break;
+                        }
+                      }
+                      return Padding(
+                        padding: const EdgeInsets.symmetric(horizontal: 16.0),
                         child: ListTile(
-                          title: Text(
-                            todo,
-                            style: const TextStyle(fontSize: 16),
-                          ),
+                          title: Text(todo),
                           subtitle: eventDate != null
                               ? Text(
                                   DateFormat('dd MMMM yyyy', 'tr_TR').format(eventDate),

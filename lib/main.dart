@@ -4,8 +4,14 @@ import 'package:todo_app/notes_page.dart';
 import 'package:todo_app/calendar_page.dart';
 import 'package:provider/provider.dart';
 import 'package:todo_app/models/app_data.dart';
+import 'package:sqflite_common_ffi/sqflite_ffi.dart';
+import 'package:flutter/foundation.dart';
 
 void main() {
+  if (defaultTargetPlatform == TargetPlatform.macOS || defaultTargetPlatform == TargetPlatform.linux || defaultTargetPlatform == TargetPlatform.windows) {
+    sqfliteFfiInit();
+    databaseFactory = databaseFactoryFfi;
+  }
   runApp(
     ChangeNotifierProvider(
       create: (context) => AppData(),
@@ -40,8 +46,8 @@ class HomePage extends StatefulWidget {
 
 class _HomePageState extends State<HomePage> with SingleTickerProviderStateMixin {
   int _selectedIndex = 0;
-  late final AnimationController _controller;
-  late final Animation<Offset> _offsetAnimation;
+  late AnimationController _animationController;
+  late Animation<Offset> _offsetAnimation;
   
   final List<Widget> _pages = [
     const TodoPage(),
@@ -52,7 +58,7 @@ class _HomePageState extends State<HomePage> with SingleTickerProviderStateMixin
   @override
   void initState() {
     super.initState();
-    _controller = AnimationController(
+    _animationController = AnimationController(
       vsync: this,
       duration: const Duration(milliseconds: 300),
     );
@@ -60,24 +66,24 @@ class _HomePageState extends State<HomePage> with SingleTickerProviderStateMixin
       begin: const Offset(0.0, 1.0),
       end: Offset.zero,
     ).animate(CurvedAnimation(
-      parent: _controller,
+      parent: _animationController,
       curve: Curves.easeInOut,
     ));
-    _controller.forward();
+    _animationController.forward();
   }
 
   @override
   void dispose() {
-    _controller.dispose();
+    _animationController.dispose();
     super.dispose();
   }
 
   void _onItemTapped(int index) {
     setState(() {
       _selectedIndex = index;
-      _controller.reset();
-      _controller.forward();
     });
+    _animationController.reset();
+    _animationController.forward();
   }
 
   @override
@@ -85,11 +91,14 @@ class _HomePageState extends State<HomePage> with SingleTickerProviderStateMixin
     return Scaffold(
       body: Container(
         decoration: const BoxDecoration(
-          borderRadius: BorderRadius.only(
-            topLeft: Radius.circular(30),
-            topRight: Radius.circular(30),
+          gradient: LinearGradient(
+            begin: Alignment.topCenter,
+            end: Alignment.bottomCenter,
+            colors: [
+              Color(0xFFF5F5DC),
+              Color(0xFFE0E0C0),
+            ],
           ),
-          color: Color(0xFFF5F5DC),
         ),
         child: ClipRRect(
           borderRadius: const BorderRadius.only(
@@ -106,7 +115,7 @@ class _HomePageState extends State<HomePage> with SingleTickerProviderStateMixin
         items: const <BottomNavigationBarItem>[
           BottomNavigationBarItem(
             icon: Icon(Icons.check_box),
-            label: 'Yapılacaklar',
+            label: 'To-Do',
           ),
           BottomNavigationBarItem(
             icon: Icon(Icons.note),
