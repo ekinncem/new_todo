@@ -107,6 +107,11 @@ class _TodoPageState extends State<TodoPage> {
                   return ListView.builder(
                     itemCount: appData.todos.length,
                     itemBuilder: (context, index) {
+                      final todo = appData.todos[index];
+                      final eventDate = appData.events.entries.firstWhere(
+                        (element) => element.value.any((e) => e['title'] == todo),
+                        orElse: () => MapEntry(null, []),
+                      ).key;
                       return Card(
                         color: Colors.white,
                         shape: RoundedRectangleBorder(
@@ -114,9 +119,15 @@ class _TodoPageState extends State<TodoPage> {
                         ),
                         child: ListTile(
                           title: Text(
-                            appData.todos[index],
+                            todo,
                             style: const TextStyle(fontSize: 16),
                           ),
+                          subtitle: eventDate != null
+                              ? Text(
+                                  DateFormat('dd MMMM yyyy', 'tr_TR').format(eventDate),
+                                  style: const TextStyle(fontSize: 12, color: Colors.grey),
+                                )
+                              : null,
                           trailing: IconButton(
                             icon: const Icon(Icons.delete),
                             onPressed: () => _removeTodo(context, index),

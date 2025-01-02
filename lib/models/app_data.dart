@@ -49,13 +49,30 @@ class AppData extends ChangeNotifier {
     } else {
       _events[date] = [{'title': title, 'isTodo': isTodo}];
     }
+    if (isTodo) {
+      if (!_todos.contains(title)) {
+        _todos.add(title);
+      }
+    } else {
+      if (!_notes.contains(title)) {
+        _notes.add(title);
+      }
+    }
     notifyListeners();
   }
 
   void removeEvent(DateTime date, int index) {
-    _events[date]?.removeAt(index);
-    if (_events[date]?.isEmpty ?? false) {
-      _events.remove(date);
+    if (_events[date] != null) {
+      final event = _events[date]![index];
+      _events[date]!.removeAt(index);
+      if (_events[date]!.isEmpty) {
+        _events.remove(date);
+      }
+      if (event['isTodo'] == true) {
+        _todos.remove(event['title']);
+      } else {
+        _notes.remove(event['title']);
+      }
     }
     notifyListeners();
   }
@@ -67,6 +84,11 @@ class AppData extends ChangeNotifier {
     _events[date]!.removeWhere((event) => event['title'] == title);
     if (_events[date]!.isEmpty) {
       _events.remove(date);
+    }
+    if (_todos.contains(title)) {
+      _todos.remove(title);
+    } else if (_notes.contains(title)) {
+      _notes.remove(title);
     }
     notifyListeners();
   }

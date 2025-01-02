@@ -14,14 +14,14 @@ class NotesPage extends StatefulWidget {
 class _NotesPageState extends State<NotesPage> {
   final TextEditingController _textController = TextEditingController();
   DateTime? _selectedDate;
-  bool _isCalendarOpen = false; // Takvim açık mı kontrolü
+  bool _isCalendarOpen = false;
 
   void _addNote(BuildContext context) {
     if (_textController.text.isNotEmpty) {
       Provider.of<AppData>(context, listen: false).addNote(_textController.text, date: _selectedDate);
       _textController.clear();
       _selectedDate = null;
-      _isCalendarOpen = false; // Ekleme yapıldıktan sonra takvimi kapat
+      _isCalendarOpen = false;
     }
   }
 
@@ -40,7 +40,7 @@ class _NotesPageState extends State<NotesPage> {
             fontSize: 24,
           ),
         ),
-        backgroundColor: const Color(0xFF4CAF50), // Notlar için yeşil tema
+        backgroundColor: const Color(0xFF4CAF50),
       ),
       body: Padding(
         padding: const EdgeInsets.all(16.0),
@@ -78,16 +78,16 @@ class _NotesPageState extends State<NotesPage> {
               child: ElevatedButton(
                 onPressed: () {
                   if (_isCalendarOpen) {
-                    _addNote(context); // Takvim açıksa ve ekle butonuna basıldıysa
+                    _addNote(context);
                   } else {
-                    _showCalendarDialog(context); // Takvim kapalıysa takvimi aç
+                    _showCalendarDialog(context);
                   }
                   setState(() {
-                    _isCalendarOpen = !_isCalendarOpen; // Takvim durumunu değiştir
+                    _isCalendarOpen = !_isCalendarOpen;
                   });
                 },
                 style: ElevatedButton.styleFrom(
-                  backgroundColor: const Color(0xFF4CAF50), // Notlar için yeşil tema
+                  backgroundColor: const Color(0xFF4CAF50),
                   foregroundColor: Colors.white,
                   padding: const EdgeInsets.symmetric(horizontal: 32, vertical: 12),
                   shape: RoundedRectangleBorder(
@@ -95,7 +95,7 @@ class _NotesPageState extends State<NotesPage> {
                   ),
                 ),
                 child: Text(
-                  _isCalendarOpen ? 'Ekle' : 'Takvime Ekle', // Buton metnini değiştir
+                  _isCalendarOpen ? 'Ekle' : 'Takvime Ekle',
                   style: const TextStyle(fontSize: 18),
                 ),
               ),
@@ -107,6 +107,11 @@ class _NotesPageState extends State<NotesPage> {
                   return ListView.builder(
                     itemCount: appData.notes.length,
                     itemBuilder: (context, index) {
+                      final note = appData.notes[index];
+                      final eventDate = appData.events.entries.firstWhere(
+                        (element) => element.value.any((e) => e['title'] == note),
+                        orElse: () => MapEntry(null, []),
+                      ).key;
                       return Card(
                         color: Colors.white,
                         shape: RoundedRectangleBorder(
@@ -114,9 +119,15 @@ class _NotesPageState extends State<NotesPage> {
                         ),
                         child: ListTile(
                           title: Text(
-                            appData.notes[index],
+                            note,
                             style: const TextStyle(fontSize: 16),
                           ),
+                          subtitle: eventDate != null
+                              ? Text(
+                                  DateFormat('dd MMMM yyyy', 'tr_TR').format(eventDate),
+                                  style: const TextStyle(fontSize: 12, color: Colors.grey),
+                                )
+                              : null,
                           trailing: IconButton(
                             icon: const Icon(Icons.delete),
                             onPressed: () => _removeNote(context, index),
