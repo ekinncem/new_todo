@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:todo_app/models/app_data.dart';
+import 'package:table_calendar/table_calendar.dart';
+import 'package:intl/intl.dart';
 
 class NotesPage extends StatefulWidget {
   const NotesPage({super.key});
@@ -11,16 +13,20 @@ class NotesPage extends StatefulWidget {
 
 class _NotesPageState extends State<NotesPage> {
   final TextEditingController _textController = TextEditingController();
+  DateTime? _selectedDate;
+  bool _isCalendarOpen = false; // Takvim açık mı kontrolü
 
   void _addNote(BuildContext context) {
     if (_textController.text.isNotEmpty) {
-      Provider.of<AppData>(context, listen: false).addNote(_textController.text);
+      Provider.of<AppData>(context, listen: false).addNote(_textController.text, date: _selectedDate);
       _textController.clear();
+      _selectedDate = null;
+      _isCalendarOpen = false; // Ekleme yapıldıktan sonra takvimi kapat
     }
   }
 
   void _removeNote(BuildContext context, int index) {
-    Provider.of<AppData>(context, listen: false).removeNote(index);
+    Provider.of<AppData>(context, listen: false).removeNote(index, date: _selectedDate);
   }
 
   @override
@@ -34,12 +40,12 @@ class _NotesPageState extends State<NotesPage> {
             fontSize: 24,
           ),
         ),
-        backgroundColor: const Color(0xFFD4AC0D),
+        backgroundColor: const Color(0xFF4CAF50), // Notlar için yeşil tema
       ),
       body: Padding(
         padding: const EdgeInsets.all(16.0),
         child: Column(
-          mainAxisAlignment: MainAxisAlignment.center, // Yazı alanını ortalamak için
+          mainAxisAlignment: MainAxisAlignment.center,
           children: [
             Container(
               decoration: BoxDecoration(
@@ -50,7 +56,7 @@ class _NotesPageState extends State<NotesPage> {
                 padding: const EdgeInsets.symmetric(horizontal: 16.0),
                 child: TextField(
                   controller: _textController,
-                  textAlign: TextAlign.center, // Yazıyı ortalamak için
+                  textAlign: TextAlign.center,
                   decoration: const InputDecoration(
                     hintText: 'Yeni bir not ekle',
                     border: InputBorder.none,
@@ -59,21 +65,38 @@ class _NotesPageState extends State<NotesPage> {
               ),
             ),
             const SizedBox(height: 10),
+            if (_selectedDate != null)
+              Padding(
+                padding: const EdgeInsets.only(bottom: 8.0),
+                child: Text(
+                  'Seçilen Tarih: ${DateFormat('dd MMMM yyyy', 'tr_TR').format(_selectedDate!)}',
+                  style: const TextStyle(fontSize: 16),
+                ),
+              ),
             Align(
               alignment: Alignment.center,
               child: ElevatedButton(
-                onPressed: () => _addNote(context),
+                onPressed: () {
+                  if (_isCalendarOpen) {
+                    _addNote(context); // Takvim açıksa ve ekle butonuna basıldıysa
+                  } else {
+                    _showCalendarDialog(context); // Takvim kapalıysa takvimi aç
+                  }
+                  setState(() {
+                    _isCalendarOpen = !_isCalendarOpen; // Takvim durumunu değiştir
+                  });
+                },
                 style: ElevatedButton.styleFrom(
-                  backgroundColor: const Color(0xFF8B4513),
+                  backgroundColor: const Color(0xFF4CAF50), // Notlar için yeşil tema
                   foregroundColor: Colors.white,
                   padding: const EdgeInsets.symmetric(horizontal: 32, vertical: 12),
                   shape: RoundedRectangleBorder(
                     borderRadius: BorderRadius.circular(20),
                   ),
                 ),
-                child: const Text(
-                  'Ekle',
-                  style: TextStyle(fontSize: 18),
+                child: Text(
+                  _isCalendarOpen ? 'Ekle' : 'Takvime Ekle', // Buton metnini değiştir
+                  style: const TextStyle(fontSize: 18),
                 ),
               ),
             ),
@@ -108,6 +131,59 @@ class _NotesPageState extends State<NotesPage> {
           ],
         ),
       ),
+    );
+  }
+
+  void _showCalendarDialog(BuildContext context) {
+    showDialog(
+      context: context,
+      builder: (context) {
+        DateTime _focusedDay = DateTime.now();
+        DateTime? _selectedDay;
+        return StatefulBuilder(
+          builder: (context, setState) {
+            return AlertDialog(
+              title: const Text('Tarih Seç'),
+              content: SizedBox(
+                width: 300,
+                height: 350,
+                child: TableCalendar(
+                  firstDay: DateTime.utc(2024, 1, 1),
+                  lastDay: DateTime.utc(2025, 12, 31),
+                  focusedDay: _focusedDay,
+                  calendarFormat: CalendarFormat.month,
+                  selectedDayPredicate: (day) {
+                    return isSameDay(_selectedDay, day);
+                  },
+                  onDaySelected: (selectedDay, focusedDay) {
+                    setState(() {
+                      _selectedDay = selectedDay;
+                      _focusedDay = focusedDay;
+                    });
+                  },
+                ),
+              ),
+              actions: [
+                TextButton(
+                  onPressed: () => Navigator.pop(context),
+                  child: const Text('İptal'),
+                ),
+                TextButton(
+                  onPressed: () {
+                    if (_selectedDay != null) {
+                      setState(() {
+                        _selectedDate = _selectedDay;
+                      });
+                    }
+                    Navigator.pop(context);
+                  },
+                  child: const Text('Seç'),
+                ),
+              ],
+            );
+          },
+        );
+      },
     );
   }
 } 

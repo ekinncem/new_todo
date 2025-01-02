@@ -33,7 +33,10 @@ class _CalendarPageState extends State<CalendarPage> {
     Provider.of<AppData>(context, listen: false).removeEvent(date, index);
   }
 
-  List<dynamic> _getEventsForDay(BuildContext context, DateTime day) {
+  List<dynamic> _getEventsForDay(BuildContext context, DateTime? day) {
+    if (day == null) {
+      return [];
+    }
     return Provider.of<AppData>(context).events[day] ?? [];
   }
 
@@ -48,7 +51,7 @@ class _CalendarPageState extends State<CalendarPage> {
             fontSize: 24,
           ),
         ),
-        backgroundColor: const Color(0xFFD4AC0D),
+        backgroundColor: const Color(0xFF00796B),
       ),
       body: Column(
         children: [
@@ -71,67 +74,39 @@ class _CalendarPageState extends State<CalendarPage> {
                 _calendarFormat = format;
               });
             },
-            eventLoader: (day) => _getEventsForDay(context, day),
           ),
-          if (_selectedDay != null)
-            Padding(
-              padding: const EdgeInsets.all(16.0),
-              child: Text(
-                DateFormat('dd MMMM yyyy', 'tr_TR').format(_selectedDay!),
-                style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
-              ),
-            ),
-          if (_selectedDay != null)
-            Row(
-              mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-              children: [
-                ElevatedButton(
-                  onPressed: () => _showAddDialog(context, true),
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: const Color(0xFF8B4513),
-                    foregroundColor: Colors.white,
-                  ),
-                  child: const Text('To-Do Ekle'),
-                ),
-                ElevatedButton(
-                  onPressed: () => _showAddDialog(context, false),
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: const Color(0xFF8B4513),
-                    foregroundColor: Colors.white,
-                  ),
-                  child: const Text('Not Ekle'),
-                ),
-              ],
-            ),
-          if (_selectedDay != null)
-            Expanded(
-              child: Consumer<AppData>(
-                builder: (context, appData, child) {
-                  return ListView.builder(
-                    itemCount: _getEventsForDay(context, _selectedDay!).length,
-                    itemBuilder: (context, index) {
-                      final event = _getEventsForDay(context, _selectedDay!)[index];
-                      return Card(
-                        color: Colors.white,
-                        child: ListTile(
-                          leading: Icon(
-                            event['isTodo'] ? Icons.check_box_outline_blank : Icons.note,
-                            color: const Color(0xFF8B4513),
-                          ),
-                          title: Text(event['title']),
-                          trailing: IconButton(
-                            icon: const Icon(Icons.delete),
-                            onPressed: () {
-                              _removeEvent(context, _selectedDay!, index);
-                            },
-                          ),
+          Expanded(
+            child: Consumer<AppData>(
+              builder: (context, appData, child) {
+                final events = _getEventsForDay(context, _selectedDay);
+                return ListView.builder(
+                  itemCount: events.length,
+                  itemBuilder: (context, index) {
+                    final event = events[index];
+                    return Card(
+                      color: Colors.white,
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(15),
+                      ),
+                      child: ListTile(
+                        leading: Icon(
+                          event['isTodo'] ? Icons.check_box : Icons.note,
+                          color: const Color(0xFF00796B),
                         ),
-                      );
-                    },
-                  );
-                },
-              ),
+                        title: Text(event['title']),
+                        trailing: IconButton(
+                          icon: const Icon(Icons.delete),
+                          onPressed: () {
+                            _removeEvent(context, _selectedDay!, index);
+                          },
+                        ),
+                      ),
+                    );
+                  },
+                );
+              },
             ),
+          ),
         ],
       ),
     );
@@ -145,7 +120,7 @@ class _CalendarPageState extends State<CalendarPage> {
         title: Text(isTodo ? 'Yeni To-Do' : 'Yeni Not'),
         content: TextField(
           controller: controller,
-          textAlign: TextAlign.center, // Yazıyı ortalamak için
+          textAlign: TextAlign.center,
           decoration: InputDecoration(
             hintText: isTodo ? 'To-Do girin' : 'Not girin',
           ),

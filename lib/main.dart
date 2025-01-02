@@ -22,7 +22,7 @@ class MyApp extends StatelessWidget {
     return MaterialApp(
       title: 'To-Do & Notes App',
       theme: ThemeData(
-        colorScheme: ColorScheme.fromSeed(seedColor: const Color(0xFFD4AC0D)),
+        colorScheme: ColorScheme.fromSeed(seedColor: const Color(0xFF6750A4)),
         useMaterial3: true,
         scaffoldBackgroundColor: const Color(0xFFF5F5DC),
       ),
@@ -41,7 +41,7 @@ class HomePage extends StatefulWidget {
 class _HomePageState extends State<HomePage> with SingleTickerProviderStateMixin {
   int _selectedIndex = 0;
   late final AnimationController _controller;
-  late Animation<Offset> _offsetAnimation;
+  late final Animation<Offset> _offsetAnimation;
   
   final List<Widget> _pages = [
     const TodoPage(),
@@ -53,41 +53,30 @@ class _HomePageState extends State<HomePage> with SingleTickerProviderStateMixin
   void initState() {
     super.initState();
     _controller = AnimationController(
-      duration: const Duration(milliseconds: 300),
       vsync: this,
+      duration: const Duration(milliseconds: 300),
     );
     _offsetAnimation = Tween<Offset>(
-      begin: const Offset(1.0, 0.0),
+      begin: const Offset(0.0, 1.0),
       end: Offset.zero,
     ).animate(CurvedAnimation(
       parent: _controller,
       curve: Curves.easeInOut,
     ));
+    _controller.forward();
+  }
+
+  @override
+  void dispose() {
+    _controller.dispose();
+    super.dispose();
   }
 
   void _onItemTapped(int index) {
-    if (index == _selectedIndex) return;
-    
     setState(() {
-      if (index > _selectedIndex) {
-        _offsetAnimation = Tween<Offset>(
-          begin: const Offset(1.0, 0.0),
-          end: Offset.zero,
-        ).animate(CurvedAnimation(
-          parent: _controller,
-          curve: Curves.easeInOut,
-        ));
-      } else {
-        _offsetAnimation = Tween<Offset>(
-          begin: const Offset(-1.0, 0.0),
-          end: Offset.zero,
-        ).animate(CurvedAnimation(
-          parent: _controller,
-          curve: Curves.easeInOut,
-        ));
-      }
       _selectedIndex = index;
-      _controller.forward(from: 0.0);
+      _controller.reset();
+      _controller.forward();
     });
   }
 
@@ -117,7 +106,7 @@ class _HomePageState extends State<HomePage> with SingleTickerProviderStateMixin
         items: const <BottomNavigationBarItem>[
           BottomNavigationBarItem(
             icon: Icon(Icons.check_box),
-            label: 'To-Do',
+            label: 'Yapılacaklar',
           ),
           BottomNavigationBarItem(
             icon: Icon(Icons.note),
