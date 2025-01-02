@@ -12,25 +12,29 @@ class AppData extends ChangeNotifier {
   }
 
   Future<void> _loadData() async {
-    final todos = await dbHelper.getTodos();
-    _todos = todos.map((todo) => todo['title'] as String).toList();
+    try {
+      final todos = await dbHelper.getTodos();
+      _todos = todos.map((todo) => todo['title'] as String).toList();
 
-    final notes = await dbHelper.getNotes();
-    _notes = notes.map((note) => note['title'] as String).toList();
+      final notes = await dbHelper.getNotes();
+      _notes = notes.map((note) => note['title'] as String).toList();
 
-    final events = await dbHelper.getEvents();
-    _events = {};
-    for (var event in events) {
-      final date = DateTime.tryParse(event['date'] ?? '');
-      if (date != null) {
-        if (_events[date] == null) {
-          _events[date] = [];
+      final events = await dbHelper.getEvents();
+      _events = {};
+      for (var event in events) {
+        final date = DateTime.tryParse(event['date'] ?? '');
+        if (date != null) {
+          if (_events[date] == null) {
+            _events[date] = [];
+          }
+          _events[date]!.add({
+            'title': event['title'],
+            'isTodo': event['isTodo'] == 1,
+          });
         }
-        _events[date]!.add({
-          'title': event['title'],
-          'isTodo': event['isTodo'] == 1,
-        });
       }
+    } catch (e) {
+      print('Veri yüklenirken hata oluştu: $e');
     }
     notifyListeners();
   }
@@ -40,101 +44,129 @@ class AppData extends ChangeNotifier {
   Map<DateTime?, List<dynamic>> get events => _events;
 
   void addTodo(String todo, {DateTime? date}) async {
-    final id = await dbHelper.insertTodo(todo, date);
-    _todos.add(todo);
-    if (date != null) {
-      addEvent(date, todo, true);
+    try {
+      final id = await dbHelper.insertTodo(todo, date);
+      _todos.add(todo);
+      if (date != null) {
+        addEvent(date, todo, true);
+      }
+      notifyListeners();
+    } catch (e) {
+      print('To-Do eklenirken hata oluştu: $e');
     }
-    notifyListeners();
   }
 
   void removeTodo(int index, {DateTime? date}) async {
-    String todo = _todos[index];
-    _todos.removeAt(index);
-    final todoId = await dbHelper.getTodos();
-    final id = todoId.firstWhere((element) => element['title'] == todo)['id'];
-    await dbHelper.deleteTodo(id);
-    if (date != null) {
-      removeEventByTitle(date, todo);
+    try {
+      String todo = _todos[index];
+      _todos.removeAt(index);
+      final todoId = await dbHelper.getTodos();
+      final id = todoId.firstWhere((element) => element['title'] == todo)['id'];
+      await dbHelper.deleteTodo(id);
+      if (date != null) {
+        removeEventByTitle(date, todo);
+      }
+      notifyListeners();
+    } catch (e) {
+      print('To-Do silinirken hata oluştu: $e');
     }
-    notifyListeners();
   }
 
   void addNote(String note, {DateTime? date}) async {
-    final id = await dbHelper.insertNote(note, date);
-    _notes.add(note);
-    if (date != null) {
-      addEvent(date, note, false);
+    try {
+      final id = await dbHelper.insertNote(note, date);
+      _notes.add(note);
+      if (date != null) {
+        addEvent(date, note, false);
+      }
+      notifyListeners();
+    } catch (e) {
+      print('Not eklenirken hata oluştu: $e');
     }
-    notifyListeners();
   }
 
   void removeNote(int index, {DateTime? date}) async {
-    String note = _notes[index];
-    _notes.removeAt(index);
-    final noteId = await dbHelper.getNotes();
-    final id = noteId.firstWhere((element) => element['title'] == note)['id'];
-    await dbHelper.deleteNote(id);
-    if (date != null) {
-      removeEventByTitle(date, note);
+    try {
+      String note = _notes[index];
+      _notes.removeAt(index);
+      final noteId = await dbHelper.getNotes();
+      final id = noteId.firstWhere((element) => element['title'] == note)['id'];
+      await dbHelper.deleteNote(id);
+      if (date != null) {
+        removeEventByTitle(date, note);
+      }
+      notifyListeners();
+    } catch (e) {
+      print('Not silinirken hata oluştu: $e');
     }
-    notifyListeners();
   }
 
   void addEvent(DateTime date, String title, bool isTodo) async {
-    await dbHelper.insertEvent(title, date, isTodo);
-    if (_events[date] != null) {
-      _events[date]!.add({'title': title, 'isTodo': isTodo});
-    } else {
-      _events[date] = [{'title': title, 'isTodo': isTodo}];
-    }
-    if (isTodo) {
-      if (!_todos.contains(title)) {
-        _todos.add(title);
+    try {
+      await dbHelper.insertEvent(title, date, isTodo);
+      if (_events[date] != null) {
+        _events[date]!.add({'title': title, 'isTodo': isTodo});
+      } else {
+        _events[date] = [{'title': title, 'isTodo': isTodo}];
       }
-    } else {
-      if (!_notes.contains(title)) {
-        _notes.add(title);
+      if (isTodo) {
+        if (!_todos.contains(title)) {
+          _todos.add(title);
+        }
+      } else {
+        if (!_notes.contains(title)) {
+          _notes.add(title);
+        }
       }
+      notifyListeners();
+    } catch (e) {
+      print('Etkinlik eklenirken hata oluştu: $e');
     }
-    notifyListeners();
   }
 
   void removeEvent(DateTime date, int index) async {
-    if (_events[date] != null) {
-      final event = _events[date]![index];
-      _events[date]!.removeAt(index);
+    try {
+      if (_events[date] != null) {
+        final event = _events[date]![index];
+        _events[date]!.removeAt(index);
+        final eventId = await dbHelper.getEvents();
+        final id = eventId.firstWhere((element) => element['title'] == event['title'] && DateTime.tryParse(element['date']) == date)['id'];
+        await dbHelper.deleteEvent(id);
+        if (_events[date]!.isEmpty) {
+          _events.remove(date);
+        }
+        if (event['isTodo'] == true) {
+          _todos.remove(event['title']);
+        } else {
+          _notes.remove(event['title']);
+        }
+      }
+      notifyListeners();
+    } catch (e) {
+      print('Etkinlik silinirken hata oluştu: $e');
+    }
+  }
+
+  void removeEventByTitle(DateTime? date, String title) async {
+    try {
+      if (date == null || _events[date] == null) {
+        return;
+      }
+      _events[date]!.removeWhere((event) => event['title'] == title);
       final eventId = await dbHelper.getEvents();
-      final id = eventId.firstWhere((element) => element['title'] == event['title'] && DateTime.tryParse(element['date']) == date)['id'];
+      final id = eventId.firstWhere((element) => element['title'] == title && DateTime.tryParse(element['date']) == date)['id'];
       await dbHelper.deleteEvent(id);
       if (_events[date]!.isEmpty) {
         _events.remove(date);
       }
-      if (event['isTodo'] == true) {
-        _todos.remove(event['title']);
-      } else {
-        _notes.remove(event['title']);
+      if (_todos.contains(title)) {
+        _todos.remove(title);
+      } else if (_notes.contains(title)) {
+        _notes.remove(title);
       }
+      notifyListeners();
+    } catch (e) {
+      print('Etkinlik başlığına göre silinirken hata oluştu: $e');
     }
-    notifyListeners();
-  }
-
-  void removeEventByTitle(DateTime? date, String title) async {
-    if (date == null || _events[date] == null) {
-      return;
-    }
-    _events[date]!.removeWhere((event) => event['title'] == title);
-    final eventId = await dbHelper.getEvents();
-    final id = eventId.firstWhere((element) => element['title'] == title && DateTime.tryParse(element['date']) == date)['id'];
-    await dbHelper.deleteEvent(id);
-    if (_events[date]!.isEmpty) {
-      _events.remove(date);
-    }
-    if (_todos.contains(title)) {
-      _todos.remove(title);
-    } else if (_notes.contains(title)) {
-      _notes.remove(title);
-    }
-    notifyListeners();
   }
 } 

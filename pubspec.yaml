@@ -14,6 +14,7 @@ dependencies:
   intl: ^0.18.1
   provider: ^6.0.5
   sqflite: ^2.3.0
+  sqflite_common_ffi: ^2.3.0
   # Diğer bağımlılıklar buraya eklenebilir
   # Örneğin:
   # shared_preferences: ^2.0.0

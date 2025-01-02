@@ -1,14 +1,16 @@
 import 'package:flutter/material.dart';
+import 'package:sqflite_common_ffi/sqflite_ffi.dart';
 import 'package:todo_app/todo_page.dart';
 import 'package:todo_app/notes_page.dart';
 import 'package:todo_app/calendar_page.dart';
 import 'package:provider/provider.dart';
 import 'package:todo_app/models/app_data.dart';
 import 'package:flutter/foundation.dart';
-import 'package:sqflite_common_ffi/sqflite_ffi.dart';
 
 void main() {
-  if (defaultTargetPlatform == TargetPlatform.macOS || defaultTargetPlatform == TargetPlatform.linux || defaultTargetPlatform == TargetPlatform.windows) {
+  if (defaultTargetPlatform == TargetPlatform.macOS ||
+      defaultTargetPlatform == TargetPlatform.linux ||
+      defaultTargetPlatform == TargetPlatform.windows) {
     sqfliteFfiInit();
     databaseFactory = databaseFactoryFfi;
   }
