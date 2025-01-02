@@ -2,6 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:table_calendar/table_calendar.dart';
 import 'package:intl/intl.dart';
 import 'package:intl/date_symbol_data_local.dart';
+import 'package:provider/provider.dart';
+import 'package:todo_app/models/app_data.dart';
 
 class CalendarPage extends StatefulWidget {
   const CalendarPage({super.key});
@@ -14,7 +16,6 @@ class _CalendarPageState extends State<CalendarPage> {
   CalendarFormat _calendarFormat = CalendarFormat.month;
   DateTime _focusedDay = DateTime.now();
   DateTime? _selectedDay;
-  Map<DateTime, List<dynamic>> _events = {};
 
   @override
   void initState() {
@@ -22,20 +23,18 @@ class _CalendarPageState extends State<CalendarPage> {
     initializeDateFormatting('tr_TR', null);
   }
 
-  void _addEvent(String title, bool isTodo) {
+  void _addEvent(BuildContext context, String title, bool isTodo) {
     if (_selectedDay != null) {
-      setState(() {
-        if (_events[_selectedDay!] != null) {
-          _events[_selectedDay!]!.add({'title': title, 'isTodo': isTodo});
-        } else {
-          _events[_selectedDay!] = [{'title': title, 'isTodo': isTodo}];
-        }
-      });
+      Provider.of<AppData>(context, listen: false).addEvent(_selectedDay!, title, isTodo);
     }
   }
 
-  List<dynamic> _getEventsForDay(DateTime day) {
-    return _events[day] ?? [];
+  void _removeEvent(BuildContext context, DateTime date, int index) {
+    Provider.of<AppData>(context, listen: false).removeEvent(date, index);
+  }
+
+  List<dynamic> _getEventsForDay(BuildContext context, DateTime day) {
+    return Provider.of<AppData>(context).events[day] ?? [];
   }
 
   @override
@@ -72,20 +71,22 @@ class _CalendarPageState extends State<CalendarPage> {
                 _calendarFormat = format;
               });
             },
-            eventLoader: _getEventsForDay,
+            eventLoader: (day) => _getEventsForDay(context, day),
           ),
-          const SizedBox(height: 20),
-          if (_selectedDay != null) ...[
-            Text(
-              DateFormat('dd MMMM yyyy', 'tr_TR').format(_selectedDay!),
-              style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+          if (_selectedDay != null)
+            Padding(
+              padding: const EdgeInsets.all(16.0),
+              child: Text(
+                DateFormat('dd MMMM yyyy', 'tr_TR').format(_selectedDay!),
+                style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+              ),
             ),
-            const SizedBox(height: 10),
+          if (_selectedDay != null)
             Row(
               mainAxisAlignment: MainAxisAlignment.spaceEvenly,
               children: [
                 ElevatedButton(
-                  onPressed: () => _showAddDialog(true),
+                  onPressed: () => _showAddDialog(context, true),
                   style: ElevatedButton.styleFrom(
                     backgroundColor: const Color(0xFF8B4513),
                     foregroundColor: Colors.white,
@@ -93,7 +94,7 @@ class _CalendarPageState extends State<CalendarPage> {
                   child: const Text('To-Do Ekle'),
                 ),
                 ElevatedButton(
-                  onPressed: () => _showAddDialog(false),
+                  onPressed: () => _showAddDialog(context, false),
                   style: ElevatedButton.styleFrom(
                     backgroundColor: const Color(0xFF8B4513),
                     foregroundColor: Colors.white,
@@ -102,42 +103,41 @@ class _CalendarPageState extends State<CalendarPage> {
                 ),
               ],
             ),
+          if (_selectedDay != null)
             Expanded(
-              child: ListView.builder(
-                itemCount: _getEventsForDay(_selectedDay!).length,
-                itemBuilder: (context, index) {
-                  final event = _getEventsForDay(_selectedDay!)[index];
-                  return Card(
-                    color: Colors.white,
-                    child: ListTile(
-                      leading: Icon(
-                        event['isTodo'] ? Icons.check_box_outline_blank : Icons.note,
-                        color: const Color(0xFF8B4513),
-                      ),
-                      title: Text(event['title']),
-                      trailing: IconButton(
-                        icon: const Icon(Icons.delete),
-                        onPressed: () {
-                          setState(() {
-                            _events[_selectedDay!]?.removeAt(index);
-                            if (_events[_selectedDay!]?.isEmpty ?? false) {
-                              _events.remove(_selectedDay!);
-                            }
-                          });
-                        },
-                      ),
-                    ),
+              child: Consumer<AppData>(
+                builder: (context, appData, child) {
+                  return ListView.builder(
+                    itemCount: _getEventsForDay(context, _selectedDay!).length,
+                    itemBuilder: (context, index) {
+                      final event = _getEventsForDay(context, _selectedDay!)[index];
+                      return Card(
+                        color: Colors.white,
+                        child: ListTile(
+                          leading: Icon(
+                            event['isTodo'] ? Icons.check_box_outline_blank : Icons.note,
+                            color: const Color(0xFF8B4513),
+                          ),
+                          title: Text(event['title']),
+                          trailing: IconButton(
+                            icon: const Icon(Icons.delete),
+                            onPressed: () {
+                              _removeEvent(context, _selectedDay!, index);
+                            },
+                          ),
+                        ),
+                      );
+                    },
                   );
                 },
               ),
             ),
-          ],
         ],
       ),
     );
   }
 
-  void _showAddDialog(bool isTodo) {
+  void _showAddDialog(BuildContext context, bool isTodo) {
     final TextEditingController controller = TextEditingController();
     showDialog(
       context: context,
@@ -145,6 +145,7 @@ class _CalendarPageState extends State<CalendarPage> {
         title: Text(isTodo ? 'Yeni To-Do' : 'Yeni Not'),
         content: TextField(
           controller: controller,
+          textAlign: TextAlign.center, // Yazıyı ortalamak için
           decoration: InputDecoration(
             hintText: isTodo ? 'To-Do girin' : 'Not girin',
           ),
@@ -157,7 +158,7 @@ class _CalendarPageState extends State<CalendarPage> {
           TextButton(
             onPressed: () {
               if (controller.text.isNotEmpty) {
-                _addEvent(controller.text, isTodo);
+                _addEvent(context, controller.text, isTodo);
                 Navigator.pop(context);
               }
             },

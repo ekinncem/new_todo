@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
+import 'package:todo_app/models/app_data.dart';
 
 class NotesPage extends StatefulWidget {
   const NotesPage({super.key});
@@ -8,22 +10,17 @@ class NotesPage extends StatefulWidget {
 }
 
 class _NotesPageState extends State<NotesPage> {
-  List<String> notes = [];
   final TextEditingController _textController = TextEditingController();
 
-  void _addNote() {
+  void _addNote(BuildContext context) {
     if (_textController.text.isNotEmpty) {
-      setState(() {
-        notes.add(_textController.text);
-        _textController.clear();
-      });
+      Provider.of<AppData>(context, listen: false).addNote(_textController.text);
+      _textController.clear();
     }
   }
 
-  void _removeNote(int index) {
-    setState(() {
-      notes.removeAt(index);
-    });
+  void _removeNote(BuildContext context, int index) {
+    Provider.of<AppData>(context, listen: false).removeNote(index);
   }
 
   @override
@@ -42,43 +39,68 @@ class _NotesPageState extends State<NotesPage> {
       body: Padding(
         padding: const EdgeInsets.all(16.0),
         child: Column(
+          mainAxisAlignment: MainAxisAlignment.center, // Yazı alanını ortalamak için
           children: [
-            TextField(
-              controller: _textController,
-              decoration: const InputDecoration(
-                hintText: 'Yeni bir not ekle',
-                border: OutlineInputBorder(),
+            Container(
+              decoration: BoxDecoration(
+                borderRadius: BorderRadius.circular(20),
+                color: Colors.white,
+              ),
+              child: Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 16.0),
+                child: TextField(
+                  controller: _textController,
+                  textAlign: TextAlign.center, // Yazıyı ortalamak için
+                  decoration: const InputDecoration(
+                    hintText: 'Yeni bir not ekle',
+                    border: InputBorder.none,
+                  ),
+                ),
               ),
             ),
             const SizedBox(height: 10),
-            ElevatedButton(
-              onPressed: _addNote,
-              style: ElevatedButton.styleFrom(
-                backgroundColor: const Color(0xFF8B4513),
-                foregroundColor: Colors.white,
-              ),
-              child: const Text(
-                'Ekle',
-                style: TextStyle(fontSize: 18),
+            Align(
+              alignment: Alignment.center,
+              child: ElevatedButton(
+                onPressed: () => _addNote(context),
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: const Color(0xFF8B4513),
+                  foregroundColor: Colors.white,
+                  padding: const EdgeInsets.symmetric(horizontal: 32, vertical: 12),
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(20),
+                  ),
+                ),
+                child: const Text(
+                  'Ekle',
+                  style: TextStyle(fontSize: 18),
+                ),
               ),
             ),
             const SizedBox(height: 20),
             Expanded(
-              child: ListView.builder(
-                itemCount: notes.length,
-                itemBuilder: (context, index) {
-                  return Card(
-                    color: Colors.white,
-                    child: ListTile(
-                      title: Text(
-                        notes[index],
-                        style: const TextStyle(fontSize: 16),
-                      ),
-                      trailing: IconButton(
-                        icon: const Icon(Icons.delete),
-                        onPressed: () => _removeNote(index),
-                      ),
-                    ),
+              child: Consumer<AppData>(
+                builder: (context, appData, child) {
+                  return ListView.builder(
+                    itemCount: appData.notes.length,
+                    itemBuilder: (context, index) {
+                      return Card(
+                        color: Colors.white,
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(15),
+                        ),
+                        child: ListTile(
+                          title: Text(
+                            appData.notes[index],
+                            style: const TextStyle(fontSize: 16),
+                          ),
+                          trailing: IconButton(
+                            icon: const Icon(Icons.delete),
+                            onPressed: () => _removeNote(context, index),
+                          ),
+                        ),
+                      );
+                    },
                   );
                 },
               ),

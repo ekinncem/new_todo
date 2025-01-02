@@ -2,9 +2,16 @@ import 'package:flutter/material.dart';
 import 'package:todo_app/todo_page.dart';
 import 'package:todo_app/notes_page.dart';
 import 'package:todo_app/calendar_page.dart';
+import 'package:provider/provider.dart';
+import 'package:todo_app/models/app_data.dart';
 
 void main() {
-  runApp(const MyApp());
+  runApp(
+    ChangeNotifierProvider(
+      create: (context) => AppData(),
+      child: const MyApp(),
+    ),
+  );
 }
 
 class MyApp extends StatelessWidget {
@@ -58,12 +65,6 @@ class _HomePageState extends State<HomePage> with SingleTickerProviderStateMixin
     ));
   }
 
-  @override
-  void dispose() {
-    _controller.dispose();
-    super.dispose();
-  }
-
   void _onItemTapped(int index) {
     if (index == _selectedIndex) return;
     
@@ -93,9 +94,24 @@ class _HomePageState extends State<HomePage> with SingleTickerProviderStateMixin
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      body: SlideTransition(
-        position: _offsetAnimation,
-        child: _pages[_selectedIndex],
+      body: Container(
+        decoration: const BoxDecoration(
+          borderRadius: BorderRadius.only(
+            topLeft: Radius.circular(30),
+            topRight: Radius.circular(30),
+          ),
+          color: Color(0xFFF5F5DC),
+        ),
+        child: ClipRRect(
+          borderRadius: const BorderRadius.only(
+            topLeft: Radius.circular(30),
+            topRight: Radius.circular(30),
+          ),
+          child: SlideTransition(
+            position: _offsetAnimation,
+            child: _pages[_selectedIndex],
+          ),
+        ),
       ),
       bottomNavigationBar: BottomNavigationBar(
         items: const <BottomNavigationBarItem>[

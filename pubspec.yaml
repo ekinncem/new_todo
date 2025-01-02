@@ -12,6 +12,7 @@ dependencies:
   cupertino_icons: ^1.0.2
   table_calendar: ^3.0.9
   intl: ^0.18.1
+  provider: ^6.0.5
   # Diğer bağımlılıklar buraya eklenebilir
   # Örneğin:
   # shared_preferences: ^2.0.0
