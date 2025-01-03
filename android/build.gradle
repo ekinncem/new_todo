@@ -1,11 +1,32 @@
+pluginManagement {
+    repositories {
+        gradlePluginPortal()
+        google()
+        mavenCentral() // Ensure this line is present
+        maven { url 'https://storage.googleapis.com/download.flutter.io' }
+    }
+    plugins {
+        id "dev.flutter.flutter-plugin-loader" version "1.0.0"
+    }
+}
+
+plugins {
+    id "com.android.application" version "8.2.1" apply false
+    id "org.jetbrains.kotlin.android" version "1.8.22" apply false
+}
+
+include ":app"
+
 buildscript {
     repositories {
         google()
         mavenCentral()
+        maven { url 'https://storage.googleapis.com/download.flutter.io' } // Flutter Plugin Repository
     }
     dependencies {
         classpath 'com.android.tools.build:gradle:8.2.1'
         classpath 'org.jetbrains.kotlin:kotlin-gradle-plugin:1.9.20'
+        classpath 'dev.flutter:flutter-plugin-loader:1.0.0' // Flutter Plugin Loader
     }
 }
 
@@ -13,12 +34,13 @@ allprojects {
     repositories {
         google()
         mavenCentral()
+        maven { url 'https://storage.googleapis.com/download.flutter.io' } // Flutter Plugin Repository
     }
 }
 
-rootProject.buildDir = "../build"
+rootProject.buildDir = new File(rootDir, "../build")
 subprojects {
-    project.buildDir = "${rootProject.buildDir}/${project.name}"
+    project.buildDir = new File(rootProject.buildDir, project.name)
 }
 subprojects {
     project.evaluationDependsOn(":app")
