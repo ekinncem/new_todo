@@ -65,6 +65,13 @@ class AppData extends ChangeNotifier {
       await dbHelper.deleteTodo(id);
       if (date != null) {
         removeEventByTitle(date, todo);
+      } else {
+        _events.forEach((key, value) {
+          value.removeWhere((element) => element['title'] == todo);
+          if (value.isEmpty) {
+            _events.remove(key);
+          }
+        });
       }
       notifyListeners();
     } catch (e) {
@@ -94,6 +101,13 @@ class AppData extends ChangeNotifier {
       await dbHelper.deleteNote(id);
       if (date != null) {
         removeEventByTitle(date, note);
+      } else {
+        _events.forEach((key, value) {
+          value.removeWhere((element) => element['title'] == note);
+          if (value.isEmpty) {
+            _events.remove(key);
+          }
+        });
       }
       notifyListeners();
     } catch (e) {

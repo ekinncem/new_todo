@@ -96,7 +96,6 @@ class _NotesPageState extends State<NotesPage> {
                 ),
                 child: Text(
                   _isCalendarOpen ? 'Ekle' : 'Takvime Ekle',
-                  style: const TextStyle(fontSize: 18),
                 ),
               ),
             ),
@@ -108,20 +107,17 @@ class _NotesPageState extends State<NotesPage> {
                     itemCount: appData.notes.length,
                     itemBuilder: (context, index) {
                       final note = appData.notes[index];
-                      final eventDate = appData.events.entries.firstWhere(
-                        (element) => element.value.any((e) => e['title'] == note),
-                        orElse: () => MapEntry(null, []),
-                      ).key;
-                      return Card(
-                        color: Colors.white,
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(15),
-                        ),
+                      DateTime? eventDate;
+                      for (var date in appData.events.keys) {
+                        if (appData.events[date]!.any((event) => event['title'] == note)) {
+                          eventDate = date;
+                          break;
+                        }
+                      }
+                      return Padding(
+                        padding: const EdgeInsets.symmetric(horizontal: 16.0),
                         child: ListTile(
-                          title: Text(
-                            note,
-                            style: const TextStyle(fontSize: 16),
-                          ),
+                          title: Text(note),
                           subtitle: eventDate != null
                               ? Text(
                                   DateFormat('dd MMMM yyyy', 'tr_TR').format(eventDate),
