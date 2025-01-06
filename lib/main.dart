@@ -16,8 +16,7 @@ void main() async {
   if (defaultTargetPlatform == TargetPlatform.macOS ||
       defaultTargetPlatform == TargetPlatform.linux ||
       defaultTargetPlatform == TargetPlatform.windows ||
-      defaultTargetPlatform == TargetPlatform.android ||
-      defaultTargetPlatform == TargetPlatform.iOS) {
+      defaultTargetPlatform == TargetPlatform.android ) {
     sqfliteFfiInit();
     databaseFactory = databaseFactoryFfi;
   }
