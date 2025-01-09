@@ -15,16 +15,18 @@ class CalendarPage extends StatefulWidget {
 class _CalendarPageState extends State<CalendarPage> {
   CalendarFormat _calendarFormat = CalendarFormat.month;
   late DateTime _focusedDay;
-  late DateTime _selectedDay;
+  DateTime? _selectedDay;
 
   @override
   void initState() {
     super.initState();
     _focusedDay = DateTime.now();
-    _selectedDay = _focusedDay;
+    _selectedDay = null;
   }
 
-  void _showAddDialog(BuildContext context, DateTime selectedDate) {
+  void _showAddDialog(BuildContext context, DateTime? selectedDate) {
+    if (selectedDate == null) return;
+
     final DateTime dateWithTime = DateTime(
       selectedDate.year,
       selectedDate.month,
@@ -84,14 +86,13 @@ class _CalendarPageState extends State<CalendarPage> {
           lastDay: DateTime.now().add(const Duration(days: 365)),
           focusedDay: _focusedDay,
           calendarFormat: _calendarFormat,
-          selectedDayPredicate: (day) => isSameDay(_selectedDay, day),
+          selectedDayPredicate: (day) => 
+              _selectedDay != null && isSameDay(_selectedDay!, day),
           onDaySelected: (selectedDay, focusedDay) {
-            if (!isSameDay(_selectedDay, selectedDay)) {
-              setState(() {
-                _selectedDay = selectedDay;
-                _focusedDay = focusedDay;
-              });
-            }
+            setState(() {
+              _selectedDay = selectedDay;
+              _focusedDay = focusedDay;
+            });
           },
           onFormatChanged: (format) {
             setState(() {
@@ -110,7 +111,7 @@ class _CalendarPageState extends State<CalendarPage> {
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
                 Text(
-                  DateFormatter.formatDate(_selectedDay),
+                  DateFormatter.formatDate(_selectedDay!),
                   style: const TextStyle(
                     fontSize: 18,
                     fontWeight: FontWeight.bold,
@@ -133,6 +134,17 @@ class _CalendarPageState extends State<CalendarPage> {
               final events = _selectedDay != null 
                   ? _getEventsForDay(_selectedDay!, appData)
                   : [];
+
+              if (_selectedDay == null) {
+                return Center(
+                  child: Text(
+                    'Select a date to see events',
+                    style: TextStyle(
+                      color: Colors.white.withOpacity(0.6),
+                    ),
+                  ),
+                );
+              }
 
               return events.isEmpty
                   ? Center(
