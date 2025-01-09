@@ -159,7 +159,7 @@ class _HomeScreenState extends State<HomeScreen> with SingleTickerProviderStateM
       context: context,
       builder: (context) => AddItemDialog(
         selectedDate: DateTime.now(),
-        onAdd: ({required String text, required String type, required String priority}) {
+        onAdd: (text, type, priority) {
           final appData = context.read<AppData>();
           if (type == 'todo') {
             appData.addTodo(text, date: DateTime.now(), priority: priority);
