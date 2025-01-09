@@ -109,7 +109,7 @@ class _HomeScreenState extends State<HomeScreen> with SingleTickerProviderStateM
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
               const Text(
-                'Events for today',
+                'Upcoming Events',
                 style: TextStyle(
                   fontSize: 24,
                   fontWeight: FontWeight.bold,
@@ -126,13 +126,12 @@ class _HomeScreenState extends State<HomeScreen> with SingleTickerProviderStateM
         Expanded(
           child: Consumer<AppData>(
             builder: (context, appData, child) {
-              final today = DateTime.now();
-              final events = _getEventsForDay(today, appData);
+              final events = _getUpcomingEvents(appData);
               
               return events.isEmpty
                   ? Center(
                       child: Text(
-                        'No events for today',
+                        'No upcoming events for next week',
                         style: TextStyle(
                           color: Colors.white.withOpacity(0.6),
                         ),
@@ -142,7 +141,10 @@ class _HomeScreenState extends State<HomeScreen> with SingleTickerProviderStateM
                       itemCount: events.length,
                       itemBuilder: (context, index) {
                         final event = events[index];
-                        return EventCard(event: event);
+                        return EventCard(
+                          event: event,
+                          showDate: true,
+                        );
                       },
                     );
             },
@@ -169,12 +171,15 @@ class _HomeScreenState extends State<HomeScreen> with SingleTickerProviderStateM
     );
   }
 
-  List<EventItem> _getEventsForDay(DateTime day, AppData appData) {
+  List<EventItem> _getUpcomingEvents(AppData appData) {
     final List<EventItem> events = [];
+    final DateTime now = DateTime.now();
+    final DateTime oneWeekLater = now.add(const Duration(days: 7));
 
     // To-do'ları ekle
     for (var todo in appData.todos) {
-      if (DateFormatter.isSameDay(todo['date'], day)) {
+      final todoDate = todo['date'] as DateTime;
+      if (!todoDate.isBefore(now) && !todoDate.isAfter(oneWeekLater)) {
         events.add(EventItem(
           title: todo['text'],
           time: DateFormatter.formatTime(todo['date']),
@@ -186,7 +191,8 @@ class _HomeScreenState extends State<HomeScreen> with SingleTickerProviderStateM
 
     // Notları ekle
     for (var note in appData.notes) {
-      if (DateFormatter.isSameDay(note['date'], day)) {
+      final noteDate = note['date'] as DateTime;
+      if (!noteDate.isBefore(now) && !noteDate.isAfter(oneWeekLater)) {
         events.add(EventItem(
           title: note['text'],
           time: DateFormatter.formatTime(note['date']),
@@ -195,6 +201,13 @@ class _HomeScreenState extends State<HomeScreen> with SingleTickerProviderStateM
         ));
       }
     }
+
+    // Tarihe göre sırala
+    events.sort((a, b) {
+      final aDate = DateTime.parse(a.time);
+      final bDate = DateTime.parse(b.time);
+      return aDate.compareTo(bDate);
+    });
 
     return events;
   }
@@ -294,8 +307,13 @@ class _HomeScreenState extends State<HomeScreen> with SingleTickerProviderStateM
 
 class EventCard extends StatelessWidget {
   final EventItem event;
+  final bool showDate;
 
-  const EventCard({Key? key, required this.event}) : super(key: key);
+  const EventCard({
+    Key? key,
+    required this.event,
+    this.showDate = false,
+  }) : super(key: key);
 
   @override
   Widget build(BuildContext context) {
@@ -314,7 +332,9 @@ class EventCard extends StatelessWidget {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Text(
-                    event.time,
+                    showDate
+                        ? DateFormatter.formatDate(DateTime.parse(event.time))
+                        : event.time,
                     style: TextStyle(
                       color: Colors.white.withOpacity(0.6),
                       fontSize: 14,
