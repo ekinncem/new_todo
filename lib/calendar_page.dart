@@ -3,6 +3,7 @@ import 'package:table_calendar/table_calendar.dart';
 import 'package:provider/provider.dart';
 import 'package:todo_app/models/app_data.dart';
 import 'package:todo_app/utils/date_formatter.dart';
+import 'package:todo_app/widgets/add_item_dialog.dart';
 
 class CalendarPage extends StatefulWidget {
   const CalendarPage({Key? key}) : super(key: key);
@@ -20,6 +21,23 @@ class _CalendarPageState extends State<CalendarPage> {
   void initState() {
     super.initState();
     _selectedDay = _focusedDay;
+  }
+
+  void _showAddDialog(BuildContext context, DateTime selectedDate) {
+    showDialog(
+      context: context,
+      builder: (context) => AddItemDialog(
+        selectedDate: selectedDate,
+        onAdd: (text, type) {
+          final appData = context.read<AppData>();
+          if (type == 'todo') {
+            appData.addTodo(text, date: selectedDate);
+          } else {
+            appData.addNote(text, date: selectedDate);
+          }
+        },
+      ),
+    );
   }
 
   List<Map<String, dynamic>> _getEventsForDay(DateTime day, AppData appData) {
@@ -74,6 +92,26 @@ class _CalendarPageState extends State<CalendarPage> {
           },
         ),
         const SizedBox(height: 20),
+        if (_selectedDay != null)
+          Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 16.0),
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                Text(
+                  DateFormatter.formatDate(_selectedDay!),
+                  style: const TextStyle(
+                    fontSize: 18,
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
+                IconButton(
+                  icon: const Icon(Icons.add_circle_outline),
+                  onPressed: () => _showAddDialog(context, _selectedDay!),
+                ),
+              ],
+            ),
+          ),
         Expanded(
           child: Consumer<AppData>(
             builder: (context, appData, child) {
@@ -81,49 +119,58 @@ class _CalendarPageState extends State<CalendarPage> {
                   ? _getEventsForDay(_selectedDay!, appData)
                   : [];
 
-              return ListView.builder(
-                itemCount: events.length,
-                itemBuilder: (context, index) {
-                  final event = events[index];
-                  return Card(
-                    margin: const EdgeInsets.symmetric(
-                      horizontal: 16,
-                      vertical: 4,
-                    ),
-                    child: ListTile(
-                      leading: Icon(
-                        event['type'] == 'todo' ? Icons.check_circle_outline : Icons.note,
-                        color: event['type'] == 'todo' ? Colors.blue : Colors.green,
-                      ),
-                      title: Text(
-                        event['text'],
+              return events.isEmpty
+                  ? Center(
+                      child: Text(
+                        'No events for ${DateFormatter.formatDate(_selectedDay!)}',
                         style: TextStyle(
-                          decoration: event['type'] == 'todo' && event['completed'] == true
-                              ? TextDecoration.lineThrough
-                              : null,
+                          color: Colors.white.withOpacity(0.6),
                         ),
                       ),
-                      subtitle: Text(
-                        DateFormatter.formatTime(event['date']),
-                      ),
-                      trailing: event['type'] == 'todo'
-                          ? Checkbox(
-                              value: event['completed'] ?? false,
-                              onChanged: (bool? value) {
-                                final todoIndex = appData.todos.indexWhere(
-                                  (todo) => todo['text'] == event['text'] &&
-                                          DateFormatter.isSameDay(todo['date'], event['date']),
-                                );
-                                if (todoIndex != -1) {
-                                  appData.toggleTodo(todoIndex);
-                                }
-                              },
-                            )
-                          : null,
-                    ),
-                  );
-                },
-              );
+                    )
+                  : ListView.builder(
+                      itemCount: events.length,
+                      itemBuilder: (context, index) {
+                        final event = events[index];
+                        return Card(
+                          margin: const EdgeInsets.symmetric(
+                            horizontal: 16,
+                            vertical: 4,
+                          ),
+                          child: ListTile(
+                            leading: Icon(
+                              event['type'] == 'todo' ? Icons.check_circle_outline : Icons.note,
+                              color: event['type'] == 'todo' ? Colors.blue : Colors.green,
+                            ),
+                            title: Text(
+                              event['text'],
+                              style: TextStyle(
+                                decoration: event['type'] == 'todo' && event['completed'] == true
+                                    ? TextDecoration.lineThrough
+                                    : null,
+                              ),
+                            ),
+                            subtitle: Text(
+                              DateFormatter.formatTime(event['date']),
+                            ),
+                            trailing: event['type'] == 'todo'
+                                ? Checkbox(
+                                    value: event['completed'] ?? false,
+                                    onChanged: (bool? value) {
+                                      final todoIndex = appData.todos.indexWhere(
+                                        (todo) => todo['text'] == event['text'] &&
+                                                DateFormatter.isSameDay(todo['date'], event['date']),
+                                      );
+                                      if (todoIndex != -1) {
+                                        appData.toggleTodo(todoIndex);
+                                      }
+                                    },
+                                  )
+                                : null,
+                          ),
+                        );
+                      },
+                    );
             },
           ),
         ),

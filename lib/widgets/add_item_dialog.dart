@@ -50,6 +50,12 @@ class _AddItemDialogState extends State<AddItemDialog> {
               ],
             ),
             const SizedBox(height: 24),
+            Text(
+              'Date: ${DateFormatter.formatDate(widget.selectedDate)}',
+              style: const TextStyle(
+                color: Colors.grey,
+              ),
+            ),
             Row(
               children: [
                 _buildTypeButton('todo', 'Task', Icons.task_alt),
