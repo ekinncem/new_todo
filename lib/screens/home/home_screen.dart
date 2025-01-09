@@ -16,46 +16,52 @@ class HomeScreen extends StatefulWidget {
 
 class _HomeScreenState extends State<HomeScreen> with SingleTickerProviderStateMixin {
   int _selectedIndex = 0;
-  late AnimationController _fabAnimationController;
-  late Animation<double> _fabScaleAnimation;
-  late Animation<double> _fabRotateAnimation;
+  AnimationController? _fabAnimationController;
+  Animation<double>? _fabScaleAnimation;
+  Animation<double>? _fabRotateAnimation;
 
   @override
   void initState() {
     super.initState();
+    _setupAnimations();
+  }
+
+  void _setupAnimations() {
     _fabAnimationController = AnimationController(
       duration: const Duration(milliseconds: 200),
       vsync: this,
     );
-    _fabScaleAnimation = Tween<double>(begin: 1, end: 0.8).animate(
-      CurvedAnimation(parent: _fabAnimationController, curve: Curves.easeInOut),
-    );
-    _fabRotateAnimation = Tween<double>(begin: 0, end: 0.125).animate(
-      CurvedAnimation(parent: _fabAnimationController, curve: Curves.easeInOut),
-    );
-  }
 
-  @override
-  void dispose() {
-    _fabAnimationController.dispose();
-    super.dispose();
+    _fabScaleAnimation = Tween<double>(begin: 1, end: 0.8).animate(
+      CurvedAnimation(
+        parent: _fabAnimationController!,
+        curve: Curves.easeInOut,
+      ),
+    );
+
+    _fabRotateAnimation = Tween<double>(begin: 0, end: 0.125).animate(
+      CurvedAnimation(
+        parent: _fabAnimationController!,
+        curve: Curves.easeInOut,
+      ),
+    );
   }
 
   Widget _buildFAB() {
     return GestureDetector(
-      onTapDown: (_) => _fabAnimationController.forward(),
+      onTapDown: (_) => _fabAnimationController?.forward(),
       onTapUp: (_) {
-        _fabAnimationController.reverse();
+        _fabAnimationController?.reverse();
         _showAddDialog(context);
       },
-      onTapCancel: () => _fabAnimationController.reverse(),
+      onTapCancel: () => _fabAnimationController?.reverse(),
       child: AnimatedBuilder(
-        animation: _fabAnimationController,
+        animation: _fabAnimationController!,
         builder: (context, child) {
           return Transform.scale(
-            scale: _fabScaleAnimation.value,
+            scale: _fabScaleAnimation?.value ?? 1.0,
             child: Transform.rotate(
-              angle: _fabRotateAnimation.value * 2 * 3.14159,
+              angle: (_fabRotateAnimation?.value ?? 0) * 2 * 3.14159,
               child: Container(
                 width: 60,
                 height: 60,
@@ -88,95 +94,9 @@ class _HomeScreenState extends State<HomeScreen> with SingleTickerProviderStateM
   }
 
   @override
-  Widget build(BuildContext context) {
-    return Scaffold(
-      backgroundColor: Theme.of(context).scaffoldBackgroundColor,
-      appBar: AppBar(
-        backgroundColor: Colors.transparent,
-        elevation: 0,
-        automaticallyImplyLeading: false,
-        actions: [
-          Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 16),
-            child: GestureDetector(
-              onTap: () {
-                showDialog(
-                  context: context,
-                  builder: (context) => const EditProfileDialog(),
-                );
-              },
-              child: Consumer<UserData>(
-                builder: (context, userData, child) {
-                  return Container(
-                    decoration: BoxDecoration(
-                      shape: BoxShape.circle,
-                      border: Border.all(color: Colors.white24),
-                    ),
-                    child: CircleAvatar(
-                      radius: 18,
-                      backgroundColor: Colors.transparent,
-                      child: userData.photoUrl != null
-                          ? ClipOval(
-                              child: Image.network(
-                                userData.photoUrl!,
-                                width: 36,
-                                height: 36,
-                                fit: BoxFit.cover,
-                              ),
-                            )
-                          : Text(
-                              userData.name?.isNotEmpty == true
-                                  ? userData.name![0].toUpperCase()
-                                  : '?',
-                              style: const TextStyle(
-                                color: Colors.white70,
-                                fontSize: 16,
-                                fontWeight: FontWeight.bold,
-                              ),
-                            ),
-                    ),
-                  );
-                },
-              ),
-            ),
-          ),
-        ],
-      ),
-      body: _selectedIndex == 0 ? _buildHomeContent() : const CalendarPage(),
-      floatingActionButton: _buildFAB(),
-      bottomNavigationBar: Container(
-        decoration: BoxDecoration(
-          border: Border(
-            top: BorderSide(
-              color: Colors.white.withOpacity(0.1),
-            ),
-          ),
-        ),
-        child: BottomNavigationBar(
-          backgroundColor: Theme.of(context).scaffoldBackgroundColor,
-          items: const [
-            BottomNavigationBarItem(
-              icon: Icon(Icons.home_outlined),
-              activeIcon: Icon(Icons.home),
-              label: 'Home',
-            ),
-            BottomNavigationBarItem(
-              icon: Icon(Icons.calendar_today_outlined),
-              activeIcon: Icon(Icons.calendar_today),
-              label: 'Calendar',
-            ),
-          ],
-          currentIndex: _selectedIndex,
-          selectedItemColor: Colors.white,
-          unselectedItemColor: Colors.white54,
-          onTap: (index) {
-            setState(() {
-              _selectedIndex = index;
-            });
-          },
-        ),
-      ),
-    );
+  void dispose() {
+    _fabAnimationController?.dispose();
+    super.dispose();
   }
 
   Widget _buildHomeContent() {
