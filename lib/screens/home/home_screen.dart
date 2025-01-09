@@ -182,7 +182,7 @@ class _HomeScreenState extends State<HomeScreen> with SingleTickerProviderStateM
       if (!todoDate.isBefore(now) && !todoDate.isAfter(oneWeekLater)) {
         events.add(EventItem(
           title: todo['text'],
-          time: DateFormatter.formatTime(todo['date']),
+          time: todoDate,
           type: 'todo',
           tags: ['ME TIME'],
         ));
@@ -195,7 +195,7 @@ class _HomeScreenState extends State<HomeScreen> with SingleTickerProviderStateM
       if (!noteDate.isBefore(now) && !noteDate.isAfter(oneWeekLater)) {
         events.add(EventItem(
           title: note['text'],
-          time: DateFormatter.formatTime(note['date']),
+          time: noteDate,
           type: 'note',
           tags: ['FAMILY'],
         ));
@@ -203,11 +203,7 @@ class _HomeScreenState extends State<HomeScreen> with SingleTickerProviderStateM
     }
 
     // Tarihe göre sırala
-    events.sort((a, b) {
-      final aDate = DateTime.parse(a.time);
-      final bDate = DateTime.parse(b.time);
-      return aDate.compareTo(bDate);
-    });
+    events.sort((a, b) => a.time.compareTo(b.time));
 
     return events;
   }
@@ -333,8 +329,8 @@ class EventCard extends StatelessWidget {
                 children: [
                   Text(
                     showDate
-                        ? DateFormatter.formatDate(DateTime.parse(event.time))
-                        : event.time,
+                        ? DateFormatter.formatDate(event.time)
+                        : DateFormatter.formatTime(event.time),
                     style: TextStyle(
                       color: Colors.white.withOpacity(0.6),
                       fontSize: 14,
@@ -411,7 +407,7 @@ class EventCard extends StatelessWidget {
 
 class EventItem {
   final String title;
-  final String time;
+  final DateTime time;
   final String type;
   final List<String> tags;
 
