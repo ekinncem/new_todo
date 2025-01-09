@@ -36,14 +36,14 @@ class _CalendarPageState extends State<CalendarPage> with SingleTickerProviderSt
     super.initState();
     _focusedDay = DateTime.now();
     _selectedDay = null;
-    _currentImage = _backgroundImages[0];
-    _nextImage = _backgroundImages[1];
     
+    // Önce controller'ı başlat
     _backgroundController = AnimationController(
       duration: const Duration(seconds: 2),
       vsync: this,
     );
     
+    // Sonra animation'ı başlat
     _backgroundOpacity = Tween<double>(
       begin: 0.0,
       end: 1.0,
@@ -52,10 +52,17 @@ class _CalendarPageState extends State<CalendarPage> with SingleTickerProviderSt
       curve: Curves.easeInOut,
     ));
     
-    // Her 10 saniyede bir arka planı değiştir
+    // En son görsel değişkenlerini ayarla
+    _currentImage = _backgroundImages[0];
+    _nextImage = _backgroundImages[1];
+    
+    // Timer'ı başlat ve ilk animasyonu tetikle
     Timer.periodic(const Duration(seconds: 10), (timer) {
       _changeBackground();
     });
+    
+    // İlk animasyonu başlat
+    _backgroundController.forward();
   }
 
   void _changeBackground() {
