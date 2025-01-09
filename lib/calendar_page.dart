@@ -36,7 +36,7 @@ class _CalendarPageState extends State<CalendarPage> {
   }
 
   void _startImageTimer() {
-    _imageTimer = Timer.periodic(const Duration(seconds: 15), (timer) {
+    _imageTimer = Timer.periodic(const Duration(seconds: 8), (timer) {
       setState(() {
         _currentImageIndex = (_currentImageIndex + 1) % _backgroundImages.length;
       });
@@ -165,10 +165,10 @@ class _CalendarPageState extends State<CalendarPage> {
                       end: Alignment.center,
                       colors: [
                         Colors.transparent,
-                        Colors.black.withOpacity(0.8),
+                        Colors.black.withOpacity(0.9),
                         Colors.black,
                       ],
-                      stops: const [0.0, 0.2, 0.4],
+                      stops: const [0.0, 0.15, 0.3],
                     ).createShader(bounds);
                   },
                   blendMode: BlendMode.dstIn,
@@ -194,9 +194,9 @@ class _CalendarPageState extends State<CalendarPage> {
                         image: DecorationImage(
                           image: AssetImage(_backgroundImages[_currentImageIndex]),
                           fit: BoxFit.cover,
-                          opacity: 0.4,
+                          opacity: 0.6,
                           colorFilter: ColorFilter.mode(
-                            Colors.black.withOpacity(0.3),
+                            Colors.black.withOpacity(0.2),
                             BlendMode.darken,
                           ),
                         ),
