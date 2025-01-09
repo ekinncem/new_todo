@@ -91,8 +91,6 @@ class _CalendarPageState extends State<CalendarPage> {
                 _selectedDay = selectedDay;
                 _focusedDay = focusedDay;
               });
-              // Gün seçildiğinde dialog'u göster
-              _showAddDialog(context, selectedDay);
             }
           },
           onFormatChanged: (format) {
@@ -112,15 +110,19 @@ class _CalendarPageState extends State<CalendarPage> {
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
                 Text(
-                  DateFormatter.formatDate(_selectedDay!),
+                  DateFormatter.formatDate(_selectedDay),
                   style: const TextStyle(
                     fontSize: 18,
                     fontWeight: FontWeight.bold,
                   ),
                 ),
                 IconButton(
-                  icon: const Icon(Icons.add_circle_outline),
-                  onPressed: () => _showAddDialog(context, _selectedDay!),
+                  icon: const Icon(
+                    Icons.add_circle_outline,
+                    color: Color(0xFF8E2DE2),
+                    size: 28,
+                  ),
+                  onPressed: () => _showAddDialog(context, _selectedDay),
                 ),
               ],
             ),
