@@ -159,12 +159,34 @@ class _CalendarPageState extends State<CalendarPage> {
               // Arka plan resmi
               Positioned.fill(
                 child: AnimatedSwitcher(
-                  duration: const Duration(seconds: 1),
-                  child: Image.asset(
-                    _backgroundImages[_currentImageIndex],
+                  duration: const Duration(milliseconds: 1500),
+                  transitionBuilder: (Widget child, Animation<double> animation) {
+                    return FadeTransition(
+                      opacity: Tween<double>(
+                        begin: 0.0,
+                        end: 1.0,
+                      ).animate(
+                        CurvedAnimation(
+                          parent: animation,
+                          curve: Curves.easeInOut,
+                        ),
+                      ),
+                      child: child,
+                    );
+                  },
+                  child: Container(
                     key: ValueKey<int>(_currentImageIndex),
-                    fit: BoxFit.cover,
-                    opacity: const AlwaysStoppedAnimation(0.4), // Transparanlığı azalttık
+                    decoration: BoxDecoration(
+                      image: DecorationImage(
+                        image: AssetImage(_backgroundImages[_currentImageIndex]),
+                        fit: BoxFit.cover,
+                        opacity: 0.4,
+                        colorFilter: ColorFilter.mode(
+                          Colors.black.withOpacity(0.3),
+                          BlendMode.darken,
+                        ),
+                      ),
+                    ),
                   ),
                 ),
               ),
