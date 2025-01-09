@@ -24,27 +24,17 @@ class _CalendarPageState extends State<CalendarPage> {
     _selectedDay = null;
   }
 
-  void _showAddDialog(BuildContext context, DateTime? selectedDate) {
-    if (selectedDate == null) return;
-
-    final DateTime dateWithTime = DateTime(
-      selectedDate.year,
-      selectedDate.month,
-      selectedDate.day,
-      TimeOfDay.now().hour,
-      TimeOfDay.now().minute,
-    );
-
+  void _showAddDialog(BuildContext context, DateTime selectedDate) {
     showDialog(
       context: context,
       builder: (context) => AddItemDialog(
-        selectedDate: dateWithTime,
-        onAdd: (text, type) {
+        selectedDate: selectedDate,
+        onAdd: (text, type, priority) {
           final appData = context.read<AppData>();
           if (type == 'todo') {
-            appData.addTodo(text, date: dateWithTime);
+            appData.addTodo(text, date: selectedDate, priority: priority);
           } else {
-            appData.addNote(text, date: dateWithTime);
+            appData.addNote(text, date: selectedDate, priority: priority);
           }
         },
       ),
@@ -123,7 +113,7 @@ class _CalendarPageState extends State<CalendarPage> {
                     color: Color(0xFF8E2DE2),
                     size: 28,
                   ),
-                  onPressed: () => _showAddDialog(context, _selectedDay),
+                  onPressed: () => _showAddDialog(context, _selectedDay!),
                 ),
               ],
             ),

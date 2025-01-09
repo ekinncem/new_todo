@@ -313,6 +313,19 @@ class EventCard extends StatelessWidget {
     this.showDate = false,
   }) : super(key: key);
 
+  Color _getPriorityColor(String priority) {
+    switch (priority.toLowerCase()) {
+      case 'high':
+        return Colors.red;
+      case 'normal':
+        return Colors.orange;
+      case 'low':
+        return Colors.green;
+      default:
+        return Colors.grey;
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     return Card(
@@ -395,21 +408,6 @@ class EventCard extends StatelessWidget {
       ),
     );
   }
-
-  Color _getTagColor(String tag) {
-    switch (tag.toUpperCase()) {
-      case 'ME TIME':
-        return const Color(0xFFFF8DA1);
-      case 'FITNESS':
-        return const Color(0xFF4CAF50);
-      case 'FAMILY':
-        return const Color(0xFFFFB300);
-      case 'FRIENDS':
-        return const Color(0xFF9C27B0);
-      default:
-        return Colors.grey;
-    }
-  }
 }
 
 class EventItem {
@@ -423,22 +421,9 @@ class EventItem {
     required this.title,
     required this.time,
     required this.type,
-    required this.tags,
     this.priority = 'normal',
+    this.tags = const [],
   });
-}
-
-Color _getPriorityColor(String priority) {
-  switch (priority.toLowerCase()) {
-    case 'high':
-      return Colors.red;
-    case 'normal':
-      return Colors.orange;
-    case 'low':
-      return Colors.green;
-    default:
-      return Colors.grey;
-  }
 }
 
 // EventCard içinde
