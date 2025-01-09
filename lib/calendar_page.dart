@@ -13,24 +13,61 @@ class CalendarPage extends StatefulWidget {
 
 class _CalendarPageState extends State<CalendarPage> {
   CalendarFormat _calendarFormat = CalendarFormat.month;
-  DateTime _focusedDay = DateTime.now();
+  late DateTime _focusedDay;
   DateTime? _selectedDay;
 
   @override
   void initState() {
     super.initState();
+    _focusedDay = DateTime.now();
     _selectedDay = _focusedDay;
+  }
+
+  List<EventItem> _getEventsForDay(DateTime day, AppData appData) {
+    final List<EventItem> events = [];
+
+    // To-do'ları ekle
+    for (var todo in appData.todos) {
+      if (DateFormatter.isSameDay(todo['date'], day)) {
+        events.add(EventItem(
+          title: todo['text'],
+          time: DateFormatter.formatTime(todo['date']),
+          type: 'todo',
+          tags: ['ME TIME'],
+          isCompleted: todo['completed'] ?? false,
+        ));
+      }
+    }
+
+    // Notları ekle
+    for (var note in appData.notes) {
+      if (DateFormatter.isSameDay(note['date'], day)) {
+        events.add(EventItem(
+          title: note['text'],
+          time: DateFormatter.formatTime(note['date']),
+          type: 'note',
+          tags: ['FAMILY'],
+          isCompleted: false,
+        ));
+      }
+    }
+
+    return events;
   }
 
   @override
   Widget build(BuildContext context) {
-    return Column(
-      children: [
-        _buildCalendarHeader(),
-        _buildCalendar(),
-        const SizedBox(height: 20),
-        _buildEventsList(),
-      ],
+    return Consumer<AppData>(
+      builder: (context, appData, child) {
+        return Column(
+          children: [
+            _buildCalendarHeader(),
+            _buildCalendar(appData),
+            const SizedBox(height: 20),
+            _buildEventsList(appData),
+          ],
+        );
+      },
     );
   }
 
@@ -53,7 +90,7 @@ class _CalendarPageState extends State<CalendarPage> {
     );
   }
 
-  Widget _buildCalendar() {
+  Widget _buildCalendar(AppData appData) {
     return TableCalendar(
       firstDay: DateTime.utc(2020, 1, 1),
       lastDay: DateTime.utc(2030, 12, 31),
@@ -63,6 +100,16 @@ class _CalendarPageState extends State<CalendarPage> {
       onDaySelected: (selectedDay, focusedDay) {
         setState(() {
           _selectedDay = selectedDay;
+          _focusedDay = focusedDay;
+        });
+      },
+      onFormatChanged: (format) {
+        setState(() {
+          _calendarFormat = format;
+        });
+      },
+      onPageChanged: (focusedDay) {
+        setState(() {
           _focusedDay = focusedDay;
         });
       },
@@ -85,16 +132,21 @@ class _CalendarPageState extends State<CalendarPage> {
           color: const Color(0xFF8E2DE2),
           borderRadius: BorderRadius.circular(4),
         ),
+        markerSize: 5,
+        markersMaxCount: 1,
       ),
       headerVisible: false,
       daysOfWeekStyle: const DaysOfWeekStyle(
         weekdayStyle: TextStyle(color: Colors.white70),
         weekendStyle: TextStyle(color: Colors.white70),
       ),
+      eventLoader: (day) => _getEventsForDay(day, appData),
     );
   }
 
-  Widget _buildEventsList() {
+  Widget _buildEventsList(AppData appData) {
+    final events = _selectedDay != null ? _getEventsForDay(_selectedDay!, appData) : [];
+
     return Expanded(
       child: Container(
         margin: const EdgeInsets.only(top: 8),
@@ -102,24 +154,29 @@ class _CalendarPageState extends State<CalendarPage> {
           color: Colors.white.withOpacity(0.05),
           borderRadius: const BorderRadius.vertical(top: Radius.circular(24)),
         ),
-        child: Consumer<AppData>(
-          builder: (context, appData, child) {
-            final events = _getEventsForSelectedDay(appData);
-            return ListView.builder(
-              padding: const EdgeInsets.all(16),
-              itemCount: events.length,
-              itemBuilder: (context, index) {
-                final event = events[index];
-                return _buildEventTile(event);
-              },
-            );
-          },
-        ),
+        child: events.isEmpty
+            ? Center(
+                child: Text(
+                  'No events for this day',
+                  style: TextStyle(
+                    color: Colors.white.withOpacity(0.6),
+                    fontSize: 16,
+                  ),
+                ),
+              )
+            : ListView.builder(
+                padding: const EdgeInsets.all(16),
+                itemCount: events.length,
+                itemBuilder: (context, index) {
+                  final event = events[index];
+                  return _buildEventTile(event, appData);
+                },
+              ),
       ),
     );
   }
 
-  Widget _buildEventTile(Map<String, dynamic> event) {
+  Widget _buildEventTile(EventItem event, AppData appData) {
     return Container(
       margin: const EdgeInsets.only(bottom: 12),
       padding: const EdgeInsets.all(16),
@@ -155,16 +212,17 @@ class _CalendarPageState extends State<CalendarPage> {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text(
-                  event['text'],
-                  style: const TextStyle(
+                  event.title,
+                  style: TextStyle(
                     color: Colors.white,
                     fontSize: 16,
                     fontWeight: FontWeight.w500,
+                    decoration: event.isCompleted ? TextDecoration.lineThrough : null,
                   ),
                 ),
                 const SizedBox(height: 4),
                 Text(
-                  DateFormatter.formatTime(event['date']),
+                  event.time,
                   style: TextStyle(
                     color: Colors.white.withOpacity(0.6),
                     fontSize: 14,
@@ -173,28 +231,47 @@ class _CalendarPageState extends State<CalendarPage> {
               ],
             ),
           ),
+          if (event.type == 'todo')
+            Container(
+              decoration: BoxDecoration(
+                shape: BoxShape.circle,
+                border: Border.all(color: Colors.white24),
+              ),
+              child: IconButton(
+                icon: Icon(
+                  event.isCompleted ? Icons.check_circle : Icons.circle_outlined,
+                  color: event.isCompleted ? const Color(0xFF8E2DE2) : Colors.white70,
+                ),
+                onPressed: () {
+                  // Todo tamamlama işlemi
+                  final todoIndex = appData.todos.indexWhere(
+                    (todo) => todo['text'] == event.title && 
+                            DateFormatter.isSameDay(todo['date'], _selectedDay),
+                  );
+                  if (todoIndex != -1) {
+                    appData.toggleTodo(todoIndex);
+                  }
+                },
+              ),
+            ),
         ],
       ),
     );
   }
+}
 
-  List<Map<String, dynamic>> _getEventsForSelectedDay(AppData appData) {
-    if (_selectedDay == null) return [];
-    
-    final events = <Map<String, dynamic>>[];
-    
-    for (var todo in appData.todos) {
-      if (DateFormatter.isSameDay(todo['date'], _selectedDay)) {
-        events.add(todo);
-      }
-    }
-    
-    for (var note in appData.notes) {
-      if (DateFormatter.isSameDay(note['date'], _selectedDay)) {
-        events.add(note);
-      }
-    }
-    
-    return events;
-  }
+class EventItem {
+  final String title;
+  final String time;
+  final String type;
+  final List<String> tags;
+  final bool isCompleted;
+
+  EventItem({
+    required this.title,
+    required this.time,
+    required this.type,
+    required this.tags,
+    this.isCompleted = false,
+  });
 }
