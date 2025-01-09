@@ -4,6 +4,8 @@ import 'package:todo_app/models/app_data.dart';
 import 'package:todo_app/utils/date_formatter.dart';
 import 'package:todo_app/widgets/add_item_dialog.dart';
 import 'package:todo_app/calendar_page.dart';
+import 'package:todo_app/models/user_data.dart';
+import 'package:todo_app/widgets/edit_profile_dialog.dart';
 
 class HomeScreen extends StatefulWidget {
   const HomeScreen({Key? key}) : super(key: key);
@@ -22,23 +24,49 @@ class _HomeScreenState extends State<HomeScreen> {
       appBar: AppBar(
         backgroundColor: Colors.transparent,
         elevation: 0,
-        leading: const Icon(Icons.menu),
+        automaticallyImplyLeading: false,
         actions: [
-          IconButton(
-            icon: const Icon(Icons.notifications_none),
-            onPressed: () {},
-          ),
           Padding(
             padding: const EdgeInsets.symmetric(horizontal: 16),
-            child: Container(
-              decoration: BoxDecoration(
-                shape: BoxShape.circle,
-                border: Border.all(color: Colors.white24),
-              ),
-              child: const CircleAvatar(
-                radius: 15,
-                backgroundColor: Colors.transparent,
-                child: Icon(Icons.person, size: 20, color: Colors.white70),
+            child: GestureDetector(
+              onTap: () {
+                showDialog(
+                  context: context,
+                  builder: (context) => const EditProfileDialog(),
+                );
+              },
+              child: Consumer<UserData>(
+                builder: (context, userData, child) {
+                  return Container(
+                    decoration: BoxDecoration(
+                      shape: BoxShape.circle,
+                      border: Border.all(color: Colors.white24),
+                    ),
+                    child: CircleAvatar(
+                      radius: 18,
+                      backgroundColor: Colors.transparent,
+                      child: userData.photoUrl != null
+                          ? ClipOval(
+                              child: Image.network(
+                                userData.photoUrl!,
+                                width: 36,
+                                height: 36,
+                                fit: BoxFit.cover,
+                              ),
+                            )
+                          : Text(
+                              userData.name?.isNotEmpty == true
+                                  ? userData.name![0].toUpperCase()
+                                  : '?',
+                              style: const TextStyle(
+                                color: Colors.white70,
+                                fontSize: 16,
+                                fontWeight: FontWeight.bold,
+                              ),
+                            ),
+                    ),
+                  );
+                },
               ),
             ),
           ),

@@ -9,6 +9,7 @@ import 'package:flutter/foundation.dart';
 import 'package:intl/date_symbol_data_local.dart';
 import 'package:todo_app/themes/app_theme.dart';
 import 'package:todo_app/screens/home/home_screen.dart';
+import 'package:todo_app/models/user_data.dart';
 
 void main() async {
   try {
@@ -27,6 +28,7 @@ void main() async {
       MultiProvider(
         providers: [
           ChangeNotifierProvider(create: (_) => AppData()),
+          ChangeNotifierProvider(create: (_) => UserData()),
         ],
         child: const MyApp(),
       ),
