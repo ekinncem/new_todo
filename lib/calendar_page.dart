@@ -4,7 +4,6 @@ import 'package:provider/provider.dart';
 import 'package:todo_app/models/app_data.dart';
 import 'package:todo_app/utils/date_formatter.dart';
 import 'package:todo_app/widgets/add_item_dialog.dart';
-import 'dart:async';
 
 class CalendarPage extends StatefulWidget {
   const CalendarPage({Key? key}) : super(key: key);
@@ -13,74 +12,39 @@ class CalendarPage extends StatefulWidget {
   State<CalendarPage> createState() => _CalendarPageState();
 }
 
-class _CalendarPageState extends State<CalendarPage> with SingleTickerProviderStateMixin {
+class _CalendarPageState extends State<CalendarPage> {
   CalendarFormat _calendarFormat = CalendarFormat.month;
   late DateTime _focusedDay;
   DateTime? _selectedDay;
-  late AnimationController _backgroundController;
-  late Animation<double> _backgroundOpacity;
-  
+  int _currentImageIndex = 0;
+  Timer? _imageTimer;
+
   final List<String> _backgroundImages = [
-    'assets/images/bg1.png',
-    'assets/images/bg2.png',
-    'assets/images/bg3.png',
-    'assets/images/bg4.png',
+    'assets/images/image1.jpg',
+    'assets/images/image2.jpg',
+    'assets/images/image3.jpg',
+    'assets/images/image4.jpg',
   ];
-  
-  int _currentBgIndex = 0;
-  String _currentImage = '';
-  String _nextImage = '';
-  
+
   @override
   void initState() {
     super.initState();
     _focusedDay = DateTime.now();
     _selectedDay = null;
-    
-    // Önce controller'ı başlat
-    _backgroundController = AnimationController(
-      duration: const Duration(seconds: 2),
-      vsync: this,
-    );
-    
-    // Sonra animation'ı başlat
-    _backgroundOpacity = Tween<double>(
-      begin: 0.0,
-      end: 1.0,
-    ).animate(CurvedAnimation(
-      parent: _backgroundController,
-      curve: Curves.easeInOut,
-    ));
-    
-    // En son görsel değişkenlerini ayarla
-    _currentImage = _backgroundImages[0];
-    _nextImage = _backgroundImages[1];
-    
-    // Timer'ı başlat ve ilk animasyonu tetikle
-    Timer.periodic(const Duration(seconds: 10), (timer) {
-      _changeBackground();
-    });
-    
-    // İlk animasyonu başlat
-    _backgroundController.forward();
+    _startImageTimer();
   }
 
-  void _changeBackground() {
-    setState(() {
-      _currentBgIndex = (_currentBgIndex + 1) % _backgroundImages.length;
-      _currentImage = _nextImage;
-      _nextImage = _backgroundImages[
-        (_currentBgIndex + 1) % _backgroundImages.length
-      ];
+  void _startImageTimer() {
+    _imageTimer = Timer.periodic(const Duration(seconds: 15), (timer) {
+      setState(() {
+        _currentImageIndex = (_currentImageIndex + 1) % _backgroundImages.length;
+      });
     });
-    
-    _backgroundController.reset();
-    _backgroundController.forward();
   }
 
   @override
   void dispose() {
-    _backgroundController.dispose();
+    _imageTimer?.cancel();
     super.dispose();
   }
 
@@ -131,65 +95,47 @@ class _CalendarPageState extends State<CalendarPage> with SingleTickerProviderSt
   Widget build(BuildContext context) {
     return Stack(
       children: [
-        // Mevcut arka plan
-        Positioned.fill(
+        // Arka plan resmi
+        AnimatedSwitcher(
+          duration: const Duration(seconds: 1),
           child: Image.asset(
-            _currentImage,
+            _backgroundImages[_currentImageIndex],
+            key: ValueKey<int>(_currentImageIndex),
             fit: BoxFit.cover,
             opacity: const AlwaysStoppedAnimation(0.15),
           ),
         ),
-        // Geçiş yapan arka plan
-        FadeTransition(
-          opacity: _backgroundOpacity,
-          child: Positioned.fill(
-            child: Image.asset(
-              _nextImage,
-              fit: BoxFit.cover,
-              opacity: const AlwaysStoppedAnimation(0.15),
-            ),
-          ),
-        ),
-        // Gradient overlay
-        Positioned.fill(
-          child: Container(
-            decoration: BoxDecoration(
-              gradient: LinearGradient(
-                begin: Alignment.topCenter,
-                end: Alignment.bottomCenter,
-                colors: [
-                  Colors.transparent,
-                  Theme.of(context).scaffoldBackgroundColor.withOpacity(0.8),
-                  Theme.of(context).scaffoldBackgroundColor,
-                ],
-              ),
-            ),
-          ),
-        ),
-        // Takvim içeriği
+        // Ana içerik
         Column(
           children: [
-            TableCalendar(
-              firstDay: DateTime.now().subtract(const Duration(days: 365)),
-              lastDay: DateTime.now().add(const Duration(days: 365)),
-              focusedDay: _focusedDay,
-              calendarFormat: _calendarFormat,
-              selectedDayPredicate: (day) => 
-                  _selectedDay != null && isSameDay(_selectedDay!, day),
-              onDaySelected: (selectedDay, focusedDay) {
-                setState(() {
-                  _selectedDay = selectedDay;
-                  _focusedDay = focusedDay;
-                });
-              },
-              onFormatChanged: (format) {
-                setState(() {
-                  _calendarFormat = format;
-                });
-              },
-              eventLoader: (day) {
-                return _getEventsForDay(day, Provider.of<AppData>(context, listen: false));
-              },
+            Container(
+              decoration: BoxDecoration(
+                color: Theme.of(context).scaffoldBackgroundColor.withOpacity(0.7),
+                borderRadius: BorderRadius.circular(16),
+              ),
+              margin: const EdgeInsets.all(8),
+              child: TableCalendar(
+                firstDay: DateTime.now().subtract(const Duration(days: 365)),
+                lastDay: DateTime.now().add(const Duration(days: 365)),
+                focusedDay: _focusedDay,
+                calendarFormat: _calendarFormat,
+                selectedDayPredicate: (day) => 
+                    _selectedDay != null && isSameDay(_selectedDay!, day),
+                onDaySelected: (selectedDay, focusedDay) {
+                  setState(() {
+                    _selectedDay = selectedDay;
+                    _focusedDay = focusedDay;
+                  });
+                },
+                onFormatChanged: (format) {
+                  setState(() {
+                    _calendarFormat = format;
+                  });
+                },
+                eventLoader: (day) {
+                  return _getEventsForDay(day, Provider.of<AppData>(context, listen: false));
+                },
+              ),
             ),
             const SizedBox(height: 20),
             if (_selectedDay != null)
