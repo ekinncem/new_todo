@@ -9,11 +9,11 @@ class AppData extends ChangeNotifier {
   List<Map<String, dynamic>> get notes => _notes;
   Map<DateTime, List<String>> get events => _events;
 
-  void addTodo(String text, {DateTime? date}) {
+  void addTodo(String text, {required DateTime date}) {
     _todos.add({
       'text': text,
-      'date': date ?? DateTime.now(),
       'completed': false,
+      'date': date,
     });
     notifyListeners();
   }
@@ -32,10 +32,10 @@ class AppData extends ChangeNotifier {
     }
   }
 
-  void addNote(String text, {DateTime? date}) {
+  void addNote(String text, {required DateTime date}) {
     _notes.add({
       'text': text,
-      'date': date ?? DateTime.now(),
+      'date': date,
     });
     notifyListeners();
   }

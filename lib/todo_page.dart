@@ -16,7 +16,10 @@ class _TodoPageState extends State<TodoPage> {
 
   void _addTodo() {
     if (_textController.text.isNotEmpty) {
-      context.read<AppData>().addTodo(_textController.text, date: _selectedDate);
+      context.read<AppData>().addTodo(
+        _textController.text, 
+        date: _selectedDate ?? DateTime.now(),
+      );
       _textController.clear();
       _selectedDate = null;
       setState(() {});

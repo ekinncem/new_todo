@@ -14,26 +14,35 @@ class CalendarPage extends StatefulWidget {
 
 class _CalendarPageState extends State<CalendarPage> {
   CalendarFormat _calendarFormat = CalendarFormat.month;
-  DateTime _focusedDay = DateTime.now();
-  DateTime? _selectedDay;
+  late DateTime _focusedDay;
+  late DateTime _selectedDay;
 
   @override
   void initState() {
     super.initState();
+    _focusedDay = DateTime.now();
     _selectedDay = _focusedDay;
   }
 
   void _showAddDialog(BuildContext context, DateTime selectedDate) {
+    final DateTime dateWithTime = DateTime(
+      selectedDate.year,
+      selectedDate.month,
+      selectedDate.day,
+      TimeOfDay.now().hour,
+      TimeOfDay.now().minute,
+    );
+
     showDialog(
       context: context,
       builder: (context) => AddItemDialog(
-        selectedDate: selectedDate,
+        selectedDate: dateWithTime,
         onAdd: (text, type) {
           final appData = context.read<AppData>();
           if (type == 'todo') {
-            appData.addTodo(text, date: selectedDate);
+            appData.addTodo(text, date: dateWithTime);
           } else {
-            appData.addNote(text, date: selectedDate);
+            appData.addNote(text, date: dateWithTime);
           }
         },
       ),
@@ -71,16 +80,20 @@ class _CalendarPageState extends State<CalendarPage> {
     return Column(
       children: [
         TableCalendar(
-          firstDay: DateTime.utc(2020, 1, 1),
-          lastDay: DateTime.utc(2030, 12, 31),
+          firstDay: DateTime.now().subtract(const Duration(days: 365)),
+          lastDay: DateTime.now().add(const Duration(days: 365)),
           focusedDay: _focusedDay,
           calendarFormat: _calendarFormat,
           selectedDayPredicate: (day) => isSameDay(_selectedDay, day),
           onDaySelected: (selectedDay, focusedDay) {
-            setState(() {
-              _selectedDay = selectedDay;
-              _focusedDay = focusedDay;
-            });
+            if (!isSameDay(_selectedDay, selectedDay)) {
+              setState(() {
+                _selectedDay = selectedDay;
+                _focusedDay = focusedDay;
+              });
+              // Gün seçildiğinde dialog'u göster
+              _showAddDialog(context, selectedDay);
+            }
           },
           onFormatChanged: (format) {
             setState(() {
