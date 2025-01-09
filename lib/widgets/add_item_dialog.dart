@@ -4,7 +4,7 @@ import 'package:todo_app/utils/date_formatter.dart';
 
 class AddItemDialog extends StatefulWidget {
   final DateTime selectedDate;
-  final Function(String text, String type) onAdd;
+  final Function(String text, String type, String priority) onAdd;
 
   const AddItemDialog({
     Key? key,
@@ -20,6 +20,34 @@ class _AddItemDialogState extends State<AddItemDialog> {
   final _textController = TextEditingController();
   String _selectedType = 'todo';
   TimeOfDay _selectedTime = TimeOfDay.now();
+  String _priority = 'normal';
+
+  Widget _buildPriorityButton(String priority, String label, Color color) {
+    final isSelected = _priority == priority;
+    return Expanded(
+      child: GestureDetector(
+        onTap: () => setState(() => _priority = priority),
+        child: Container(
+          padding: const EdgeInsets.symmetric(vertical: 8),
+          decoration: BoxDecoration(
+            color: isSelected ? color.withOpacity(0.1) : Colors.transparent,
+            borderRadius: BorderRadius.circular(8),
+            border: Border.all(
+              color: isSelected ? color : Colors.grey.withOpacity(0.3),
+            ),
+          ),
+          child: Text(
+            label,
+            textAlign: TextAlign.center,
+            style: TextStyle(
+              color: isSelected ? color : Colors.grey,
+              fontWeight: isSelected ? FontWeight.bold : FontWeight.normal,
+            ),
+          ),
+        ),
+      ),
+    );
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -71,6 +99,24 @@ class _AddItemDialogState extends State<AddItemDialog> {
               maxLines: 3,
             ),
             const SizedBox(height: 16),
+            const Text(
+              'Priority',
+              style: TextStyle(
+                fontSize: 16,
+                fontWeight: FontWeight.bold,
+              ),
+            ),
+            const SizedBox(height: 8),
+            Row(
+              children: [
+                _buildPriorityButton('low', 'Low', Colors.green),
+                const SizedBox(width: 8),
+                _buildPriorityButton('normal', 'Normal', Colors.orange),
+                const SizedBox(width: 8),
+                _buildPriorityButton('high', 'High', Colors.red),
+              ],
+            ),
+            const SizedBox(height: 24),
             Row(
               children: [
                 Icon(
@@ -102,7 +148,7 @@ class _AddItemDialogState extends State<AddItemDialog> {
               child: ElevatedButton(
                 onPressed: () {
                   if (_textController.text.isNotEmpty) {
-                    widget.onAdd(_textController.text, _selectedType);
+                    widget.onAdd(_textController.text, _selectedType, _priority);
                     Navigator.pop(context);
                   }
                 },

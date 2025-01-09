@@ -417,4 +417,37 @@ class EventItem {
     required this.type,
     required this.tags,
   });
-} 
+}
+
+Color _getPriorityColor(String priority) {
+  switch (priority.toLowerCase()) {
+    case 'high':
+      return Colors.red;
+    case 'normal':
+      return Colors.orange;
+    case 'low':
+      return Colors.green;
+    default:
+      return Colors.grey;
+  }
+}
+
+// EventCard içinde
+Container(
+  padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
+  decoration: BoxDecoration(
+    color: _getPriorityColor(event['priority'] ?? 'normal').withOpacity(0.1),
+    borderRadius: BorderRadius.circular(12),
+    border: Border.all(
+      color: _getPriorityColor(event['priority'] ?? 'normal').withOpacity(0.3),
+    ),
+  ),
+  child: Text(
+    event['priority']?.toUpperCase() ?? 'NORMAL',
+    style: TextStyle(
+      color: _getPriorityColor(event['priority'] ?? 'normal'),
+      fontSize: 12,
+      fontWeight: FontWeight.w500,
+    ),
+  ),
+), 
