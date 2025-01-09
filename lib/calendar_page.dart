@@ -14,7 +14,7 @@ class CalendarPage extends StatefulWidget {
 class _CalendarPageState extends State<CalendarPage> {
   CalendarFormat _calendarFormat = CalendarFormat.month;
   late DateTime _focusedDay;
-  DateTime? _selectedDay;
+  late DateTime _selectedDay;
 
   @override
   void initState() {
@@ -23,36 +23,44 @@ class _CalendarPageState extends State<CalendarPage> {
     _selectedDay = _focusedDay;
   }
 
-  List<EventItem> _getEventsForDay(DateTime day, AppData appData) {
-    final List<EventItem> events = [];
+  List<dynamic> _getEventsForDay(DateTime day, AppData appData) {
+    try {
+      final List<dynamic> events = [];
+      final DateTime dateWithoutTime = DateTime(day.year, day.month, day.day);
 
-    // To-do'ları ekle
-    for (var todo in appData.todos) {
-      if (DateFormatter.isSameDay(todo['date'], day)) {
-        events.add(EventItem(
-          title: todo['text'],
-          time: DateFormatter.formatTime(todo['date']),
-          type: 'todo',
-          tags: ['ME TIME'],
-          isCompleted: todo['completed'] ?? false,
-        ));
+      // To-do'ları ekle
+      for (var todo in appData.todos) {
+        final todoDate = todo['date'] as DateTime;
+        if (todoDate.year == dateWithoutTime.year &&
+            todoDate.month == dateWithoutTime.month &&
+            todoDate.day == dateWithoutTime.day) {
+          events.add({
+            ...todo,
+            'type': 'todo',
+            'tags': ['ME TIME'],
+          });
+        }
       }
-    }
 
-    // Notları ekle
-    for (var note in appData.notes) {
-      if (DateFormatter.isSameDay(note['date'], day)) {
-        events.add(EventItem(
-          title: note['text'],
-          time: DateFormatter.formatTime(note['date']),
-          type: 'note',
-          tags: ['FAMILY'],
-          isCompleted: false,
-        ));
+      // Notları ekle
+      for (var note in appData.notes) {
+        final noteDate = note['date'] as DateTime;
+        if (noteDate.year == dateWithoutTime.year &&
+            noteDate.month == dateWithoutTime.month &&
+            noteDate.day == dateWithoutTime.day) {
+          events.add({
+            ...note,
+            'type': 'note',
+            'tags': ['FAMILY'],
+          });
+        }
       }
-    }
 
-    return events;
+      return events;
+    } catch (e) {
+      debugPrint('Etkinlik getirme hatası: $e');
+      return [];
+    }
   }
 
   @override
@@ -62,7 +70,18 @@ class _CalendarPageState extends State<CalendarPage> {
         return Column(
           children: [
             _buildCalendarHeader(),
-            _buildCalendar(appData),
+            Card(
+              margin: const EdgeInsets.symmetric(horizontal: 8),
+              elevation: 0,
+              color: Colors.transparent,
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(24),
+                side: BorderSide(
+                  color: Colors.white.withOpacity(0.1),
+                ),
+              ),
+              child: _buildCalendar(appData),
+            ),
             const SizedBox(height: 20),
             _buildEventsList(appData),
           ],
@@ -92,26 +111,28 @@ class _CalendarPageState extends State<CalendarPage> {
 
   Widget _buildCalendar(AppData appData) {
     return TableCalendar(
-      firstDay: DateTime.utc(2020, 1, 1),
-      lastDay: DateTime.utc(2030, 12, 31),
+      firstDay: DateTime.now().subtract(const Duration(days: 365)),
+      lastDay: DateTime.now().add(const Duration(days: 365)),
       focusedDay: _focusedDay,
       calendarFormat: _calendarFormat,
       selectedDayPredicate: (day) => isSameDay(_selectedDay, day),
       onDaySelected: (selectedDay, focusedDay) {
-        setState(() {
-          _selectedDay = selectedDay;
-          _focusedDay = focusedDay;
-        });
+        if (!isSameDay(_selectedDay, selectedDay)) {
+          setState(() {
+            _selectedDay = selectedDay;
+            _focusedDay = focusedDay;
+          });
+        }
       },
       onFormatChanged: (format) {
-        setState(() {
-          _calendarFormat = format;
-        });
+        if (_calendarFormat != format) {
+          setState(() {
+            _calendarFormat = format;
+          });
+        }
       },
       onPageChanged: (focusedDay) {
-        setState(() {
-          _focusedDay = focusedDay;
-        });
+        _focusedDay = focusedDay;
       },
       calendarStyle: CalendarStyle(
         outsideDaysVisible: false,
