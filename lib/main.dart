@@ -11,7 +11,11 @@ import 'package:intl/date_symbol_data_local.dart';
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
   
-  await initializeDateFormatting('tr_TR', null);
+  try {
+    await initializeDateFormatting('tr_TR', null);
+  } catch (e) {
+    print('Tarih formatı başlatma hatası: $e');
+  }
   
   if (defaultTargetPlatform == TargetPlatform.macOS ||
       defaultTargetPlatform == TargetPlatform.linux ||
