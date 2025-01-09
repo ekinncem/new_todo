@@ -14,8 +14,78 @@ class HomeScreen extends StatefulWidget {
   State<HomeScreen> createState() => _HomeScreenState();
 }
 
-class _HomeScreenState extends State<HomeScreen> {
+class _HomeScreenState extends State<HomeScreen> with SingleTickerProviderStateMixin {
   int _selectedIndex = 0;
+  late AnimationController _fabAnimationController;
+  late Animation<double> _fabScaleAnimation;
+  late Animation<double> _fabRotateAnimation;
+
+  @override
+  void initState() {
+    super.initState();
+    _fabAnimationController = AnimationController(
+      duration: const Duration(milliseconds: 200),
+      vsync: this,
+    );
+    _fabScaleAnimation = Tween<double>(begin: 1, end: 0.8).animate(
+      CurvedAnimation(parent: _fabAnimationController, curve: Curves.easeInOut),
+    );
+    _fabRotateAnimation = Tween<double>(begin: 0, end: 0.125).animate(
+      CurvedAnimation(parent: _fabAnimationController, curve: Curves.easeInOut),
+    );
+  }
+
+  @override
+  void dispose() {
+    _fabAnimationController.dispose();
+    super.dispose();
+  }
+
+  Widget _buildFAB() {
+    return GestureDetector(
+      onTapDown: (_) => _fabAnimationController.forward(),
+      onTapUp: (_) {
+        _fabAnimationController.reverse();
+        _showAddDialog(context);
+      },
+      onTapCancel: () => _fabAnimationController.reverse(),
+      child: AnimatedBuilder(
+        animation: _fabAnimationController,
+        builder: (context, child) {
+          return Transform.scale(
+            scale: _fabScaleAnimation.value,
+            child: Transform.rotate(
+              angle: _fabRotateAnimation.value * 2 * 3.14159,
+              child: Container(
+                width: 60,
+                height: 60,
+                decoration: BoxDecoration(
+                  gradient: const LinearGradient(
+                    begin: Alignment.topLeft,
+                    end: Alignment.bottomRight,
+                    colors: [Color(0xFF8E2DE2), Color(0xFF4A00E0)],
+                  ),
+                  borderRadius: BorderRadius.circular(30),
+                  boxShadow: [
+                    BoxShadow(
+                      color: const Color(0xFF8E2DE2).withOpacity(0.3),
+                      blurRadius: 10,
+                      offset: const Offset(0, 4),
+                    ),
+                  ],
+                ),
+                child: const Icon(
+                  Icons.add,
+                  color: Colors.white,
+                  size: 32,
+                ),
+              ),
+            ),
+          );
+        },
+      ),
+    );
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -73,10 +143,7 @@ class _HomeScreenState extends State<HomeScreen> {
         ],
       ),
       body: _selectedIndex == 0 ? _buildHomeContent() : const CalendarPage(),
-      floatingActionButton: FloatingActionButton(
-        onPressed: () => _showAddDialog(context),
-        child: const Icon(Icons.add),
-      ),
+      floatingActionButton: _buildFAB(),
       bottomNavigationBar: Container(
         decoration: BoxDecoration(
           border: Border(

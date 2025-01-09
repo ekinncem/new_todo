@@ -15,4 +15,8 @@ class DateFormatter {
   static String formatTime(DateTime date) {
     return DateFormat('h:mm a').format(date);
   }
+
+  static String formatMonthYear(DateTime date) {
+    return DateFormat('MMMM yyyy').format(date);
+  }
 } 

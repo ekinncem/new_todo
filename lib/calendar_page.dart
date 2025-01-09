@@ -1,22 +1,20 @@
 import 'package:flutter/material.dart';
+import 'package:table_calendar/table_calendar.dart';
 import 'package:provider/provider.dart';
 import 'package:todo_app/models/app_data.dart';
-import 'package:table_calendar/table_calendar.dart';
-import 'package:intl/intl.dart';
+import 'package:todo_app/utils/date_formatter.dart';
 
 class CalendarPage extends StatefulWidget {
   const CalendarPage({Key? key}) : super(key: key);
 
   @override
-  _CalendarPageState createState() => _CalendarPageState();
+  State<CalendarPage> createState() => _CalendarPageState();
 }
 
 class _CalendarPageState extends State<CalendarPage> {
   CalendarFormat _calendarFormat = CalendarFormat.month;
   DateTime _focusedDay = DateTime.now();
   DateTime? _selectedDay;
-  final TextEditingController _eventController = TextEditingController();
-  String _selectedType = 'todo'; // Varsayılan olarak todo seçili
 
   @override
   void initState() {
@@ -24,201 +22,179 @@ class _CalendarPageState extends State<CalendarPage> {
     _selectedDay = _focusedDay;
   }
 
-  void _showAddDialog() {
-    showDialog(
-      context: context,
-      builder: (context) => AlertDialog(
-        title: const Text('Yeni Ekle'),
-        content: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            TextField(
-              controller: _eventController,
-              decoration: const InputDecoration(
-                hintText: 'Metin girin...',
-              ),
-            ),
-            const SizedBox(height: 16),
-            DropdownButton<String>(
-              value: _selectedType,
-              items: const [
-                DropdownMenuItem(
-                  value: 'todo',
-                  child: Text('Yapılacak'),
-                ),
-                DropdownMenuItem(
-                  value: 'note',
-                  child: Text('Not'),
-                ),
-              ],
-              onChanged: (value) {
-                setState(() {
-                  _selectedType = value!;
-                });
-              },
-            ),
-          ],
-        ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(context),
-            child: const Text('İptal'),
-          ),
-          TextButton(
-            onPressed: () {
-              if (_eventController.text.isNotEmpty && _selectedDay != null) {
-                if (_selectedType == 'todo') {
-                  context.read<AppData>().addTodo(
-                        _eventController.text,
-                        date: _selectedDay,
-                      );
-                } else {
-                  context.read<AppData>().addNote(
-                        _eventController.text,
-                        date: _selectedDay,
-                      );
-                }
-                _eventController.clear();
-                Navigator.pop(context);
-                setState(() {});
-              }
-            },
-            child: const Text('Ekle'),
-          ),
-        ],
-      ),
-    );
-  }
-
-  List<Map<String, dynamic>> _getEventsForDay(DateTime day) {
-    final appData = context.read<AppData>();
-    final List<Map<String, dynamic>> events = [];
-
-    // To-do'ları ekle
-    for (var todo in appData.todos) {
-      if (isSameDay(todo['date'], day)) {
-        events.add({...todo, 'type': 'todo'});
-      }
-    }
-
-    // Notları ekle
-    for (var note in appData.notes) {
-      if (isSameDay(note['date'], day)) {
-        events.add({...note, 'type': 'note'});
-      }
-    }
-
-    return events;
-  }
-
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(
-        title: const Text('Takvim'),
-      ),
-      body: Column(
-        children: [
-          TableCalendar(
-            firstDay: DateTime.utc(2020, 1, 1),
-            lastDay: DateTime.utc(2030, 12, 31),
-            focusedDay: _focusedDay,
-            calendarFormat: _calendarFormat,
-            selectedDayPredicate: (day) {
-              return isSameDay(_selectedDay, day);
-            },
-            onDaySelected: (selectedDay, focusedDay) {
-              setState(() {
-                _selectedDay = selectedDay;
-                _focusedDay = focusedDay;
-              });
-            },
-            onFormatChanged: (format) {
-              setState(() {
-                _calendarFormat = format;
-              });
-            },
-            eventLoader: (day) => _getEventsForDay(day),
-          ),
-          const SizedBox(height: 8.0),
-          Expanded(
-            child: Consumer<AppData>(
-              builder: (context, appData, child) {
-                final events = _selectedDay != null
-                    ? _getEventsForDay(_selectedDay!)
-                    : [];
-                return ListView.builder(
-                  itemCount: events.length,
-                  itemBuilder: (context, index) {
-                    final event = events[index];
-                    final bool isTodo = event['type'] == 'todo';
+    return Column(
+      children: [
+        _buildCalendarHeader(),
+        _buildCalendar(),
+        const SizedBox(height: 20),
+        _buildEventsList(),
+      ],
+    );
+  }
 
-                    return ListTile(
-                      leading: isTodo
-                          ? Checkbox(
-                              value: event['completed'] ?? false,
-                              onChanged: (_) {
-                                final todoIndex = appData.todos.indexWhere(
-                                  (todo) => todo['text'] == event['text'] && 
-                                          isSameDay(todo['date'], event['date']),
-                                );
-                                if (todoIndex != -1) {
-                                  appData.toggleTodo(todoIndex);
-                                }
-                              },
-                            )
-                          : const Icon(Icons.note),
-                      title: Text(
-                        event['text'],
-                        style: TextStyle(
-                          decoration: (isTodo && event['completed'] == true)
-                              ? TextDecoration.lineThrough
-                              : null,
-                        ),
-                      ),
-                      subtitle: Text(
-                        '${isTodo ? 'Yapılacak' : 'Not'} - ${DateFormat('dd/MM/yyyy').format(event['date'])}',
-                      ),
-                      trailing: IconButton(
-                        icon: const Icon(Icons.delete),
-                        onPressed: () {
-                          if (isTodo) {
-                            final todoIndex = appData.todos.indexWhere(
-                              (todo) => todo['text'] == event['text'] && 
-                                      isSameDay(todo['date'], event['date']),
-                            );
-                            if (todoIndex != -1) {
-                              appData.removeTodo(todoIndex);
-                            }
-                          } else {
-                            final noteIndex = appData.notes.indexWhere(
-                              (note) => note['text'] == event['text'] && 
-                                      isSameDay(note['date'], event['date']),
-                            );
-                            if (noteIndex != -1) {
-                              appData.removeNote(noteIndex);
-                            }
-                          }
-                        },
-                      ),
-                    );
-                  },
-                );
-              },
+  Widget _buildCalendarHeader() {
+    return Container(
+      padding: const EdgeInsets.symmetric(vertical: 16),
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          Text(
+            DateFormatter.formatMonthYear(_focusedDay),
+            style: const TextStyle(
+              fontSize: 20,
+              fontWeight: FontWeight.bold,
+              color: Colors.white,
             ),
           ),
         ],
       ),
-      floatingActionButton: FloatingActionButton(
-        onPressed: _showAddDialog,
-        child: const Icon(Icons.add),
+    );
+  }
+
+  Widget _buildCalendar() {
+    return TableCalendar(
+      firstDay: DateTime.utc(2020, 1, 1),
+      lastDay: DateTime.utc(2030, 12, 31),
+      focusedDay: _focusedDay,
+      calendarFormat: _calendarFormat,
+      selectedDayPredicate: (day) => isSameDay(_selectedDay, day),
+      onDaySelected: (selectedDay, focusedDay) {
+        setState(() {
+          _selectedDay = selectedDay;
+          _focusedDay = focusedDay;
+        });
+      },
+      calendarStyle: CalendarStyle(
+        outsideDaysVisible: false,
+        defaultTextStyle: const TextStyle(color: Colors.white),
+        weekendTextStyle: const TextStyle(color: Colors.white70),
+        selectedDecoration: BoxDecoration(
+          gradient: const LinearGradient(
+            colors: [Color(0xFF8E2DE2), Color(0xFF4A00E0)],
+          ),
+          borderRadius: BorderRadius.circular(12),
+        ),
+        todayDecoration: BoxDecoration(
+          color: Colors.white.withOpacity(0.1),
+          borderRadius: BorderRadius.circular(12),
+        ),
+        markersAlignment: Alignment.bottomCenter,
+        markerDecoration: BoxDecoration(
+          color: const Color(0xFF8E2DE2),
+          borderRadius: BorderRadius.circular(4),
+        ),
+      ),
+      headerVisible: false,
+      daysOfWeekStyle: const DaysOfWeekStyle(
+        weekdayStyle: TextStyle(color: Colors.white70),
+        weekendStyle: TextStyle(color: Colors.white70),
       ),
     );
   }
 
-  @override
-  void dispose() {
-    _eventController.dispose();
-    super.dispose();
+  Widget _buildEventsList() {
+    return Expanded(
+      child: Container(
+        margin: const EdgeInsets.only(top: 8),
+        decoration: BoxDecoration(
+          color: Colors.white.withOpacity(0.05),
+          borderRadius: const BorderRadius.vertical(top: Radius.circular(24)),
+        ),
+        child: Consumer<AppData>(
+          builder: (context, appData, child) {
+            final events = _getEventsForSelectedDay(appData);
+            return ListView.builder(
+              padding: const EdgeInsets.all(16),
+              itemCount: events.length,
+              itemBuilder: (context, index) {
+                final event = events[index];
+                return _buildEventTile(event);
+              },
+            );
+          },
+        ),
+      ),
+    );
+  }
+
+  Widget _buildEventTile(Map<String, dynamic> event) {
+    return Container(
+      margin: const EdgeInsets.only(bottom: 12),
+      padding: const EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        gradient: LinearGradient(
+          colors: [
+            const Color(0xFF8E2DE2).withOpacity(0.1),
+            const Color(0xFF4A00E0).withOpacity(0.1),
+          ],
+        ),
+        borderRadius: BorderRadius.circular(16),
+        border: Border.all(
+          color: Colors.white.withOpacity(0.1),
+        ),
+      ),
+      child: Row(
+        children: [
+          Container(
+            width: 4,
+            height: 40,
+            decoration: BoxDecoration(
+              gradient: const LinearGradient(
+                begin: Alignment.topCenter,
+                end: Alignment.bottomCenter,
+                colors: [Color(0xFF8E2DE2), Color(0xFF4A00E0)],
+              ),
+              borderRadius: BorderRadius.circular(2),
+            ),
+          ),
+          const SizedBox(width: 12),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  event['text'],
+                  style: const TextStyle(
+                    color: Colors.white,
+                    fontSize: 16,
+                    fontWeight: FontWeight.w500,
+                  ),
+                ),
+                const SizedBox(height: 4),
+                Text(
+                  DateFormatter.formatTime(event['date']),
+                  style: TextStyle(
+                    color: Colors.white.withOpacity(0.6),
+                    fontSize: 14,
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  List<Map<String, dynamic>> _getEventsForSelectedDay(AppData appData) {
+    if (_selectedDay == null) return [];
+    
+    final events = <Map<String, dynamic>>[];
+    
+    for (var todo in appData.todos) {
+      if (DateFormatter.isSameDay(todo['date'], _selectedDay)) {
+        events.add(todo);
+      }
+    }
+    
+    for (var note in appData.notes) {
+      if (DateFormatter.isSameDay(note['date'], _selectedDay)) {
+        events.add(note);
+      }
+    }
+    
+    return events;
   }
 }
