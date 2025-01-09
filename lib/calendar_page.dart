@@ -36,7 +36,7 @@ class _CalendarPageState extends State<CalendarPage> {
   }
 
   void _startImageTimer() {
-    _imageTimer = Timer.periodic(const Duration(seconds: 7), (timer) {
+    _imageTimer = Timer.periodic(const Duration(seconds: 15), (timer) {
       setState(() {
         _currentImageIndex = (_currentImageIndex + 1) % _backgroundImages.length;
       });
@@ -158,32 +158,47 @@ class _CalendarPageState extends State<CalendarPage> {
             children: [
               // Arka plan resmi
               Positioned.fill(
-                child: AnimatedSwitcher(
-                  duration: const Duration(milliseconds: 1500),
-                  transitionBuilder: (Widget child, Animation<double> animation) {
-                    return FadeTransition(
-                      opacity: Tween<double>(
-                        begin: 0.0,
-                        end: 1.0,
-                      ).animate(
-                        CurvedAnimation(
-                          parent: animation,
-                          curve: Curves.easeInOut,
-                        ),
-                      ),
-                      child: child,
-                    );
+                child: ShaderMask(
+                  shaderCallback: (Rect bounds) {
+                    return LinearGradient(
+                      begin: Alignment.topCenter,
+                      end: Alignment.center,
+                      colors: [
+                        Colors.transparent,
+                        Colors.black.withOpacity(0.8),
+                        Colors.black,
+                      ],
+                      stops: const [0.0, 0.2, 0.4],
+                    ).createShader(bounds);
                   },
-                  child: Container(
-                    key: ValueKey<int>(_currentImageIndex),
-                    decoration: BoxDecoration(
-                      image: DecorationImage(
-                        image: AssetImage(_backgroundImages[_currentImageIndex]),
-                        fit: BoxFit.cover,
-                        opacity: 0.4,
-                        colorFilter: ColorFilter.mode(
-                          Colors.black.withOpacity(0.3),
-                          BlendMode.darken,
+                  blendMode: BlendMode.dstIn,
+                  child: AnimatedSwitcher(
+                    duration: const Duration(milliseconds: 1500),
+                    transitionBuilder: (Widget child, Animation<double> animation) {
+                      return FadeTransition(
+                        opacity: Tween<double>(
+                          begin: 0.0,
+                          end: 1.0,
+                        ).animate(
+                          CurvedAnimation(
+                            parent: animation,
+                            curve: Curves.easeInOut,
+                          ),
+                        ),
+                        child: child,
+                      );
+                    },
+                    child: Container(
+                      key: ValueKey<int>(_currentImageIndex),
+                      decoration: BoxDecoration(
+                        image: DecorationImage(
+                          image: AssetImage(_backgroundImages[_currentImageIndex]),
+                          fit: BoxFit.cover,
+                          opacity: 0.4,
+                          colorFilter: ColorFilter.mode(
+                            Colors.black.withOpacity(0.3),
+                            BlendMode.darken,
+                          ),
                         ),
                       ),
                     ),
