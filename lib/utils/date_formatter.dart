@@ -11,4 +11,8 @@ class DateFormatter {
         dateA.month == dateB.month &&
         dateA.day == dateB.day;
   }
+
+  static String formatTime(DateTime date) {
+    return DateFormat('h:mm a').format(date);
+  }
 } 
