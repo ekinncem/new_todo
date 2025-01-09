@@ -42,16 +42,31 @@ android {
 
     defaultConfig {
         applicationId "com.example.todo_app"
-        minSdkVersion flutter.minSdkVersion
+        minSdkVersion 21
         targetSdkVersion flutter.targetSdkVersion
         versionCode flutterVersionCode.toInteger()
         versionName flutterVersionName
+        multiDexEnabled true
+        ndk {
+            abiFilters 'armeabi-v7a', 'arm64-v8a', 'x86_64'
+        }
     }
 
     buildTypes {
         release {
             signingConfig signingConfigs.debug
+            minifyEnabled false
+            shrinkResources false
         }
+        debug {
+            minifyEnabled false
+            shrinkResources false
+        }
+    }
+
+    lintOptions {
+        disable 'InvalidPackage'
+        checkReleaseBuilds false
     }
 }
 
@@ -61,4 +76,5 @@ flutter {
 
 dependencies {
     implementation "org.jetbrains.kotlin:kotlin-stdlib-jdk7:$kotlin_version"
+    implementation 'androidx.multidex:multidex:2.0.1'
 }

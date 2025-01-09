@@ -9,29 +9,31 @@ import 'package:flutter/foundation.dart';
 import 'package:intl/date_symbol_data_local.dart';
 
 void main() async {
-  WidgetsFlutterBinding.ensureInitialized();
-  
   try {
+    WidgetsFlutterBinding.ensureInitialized();
+    
+    // SQLite başlatma
+    if (defaultTargetPlatform == TargetPlatform.android) {
+      sqfliteFfiInit();
+      databaseFactory = databaseFactoryFfi;
+    }
+    
+    // Tarih formatlaması başlatma
     await initializeDateFormatting('tr_TR', null);
-  } catch (e) {
-    print('Tarih formatı başlatma hatası: $e');
+    
+    runApp(
+      MultiProvider(
+        providers: [
+          ChangeNotifierProvider(create: (_) => AppData()),
+        ],
+        child: const MyApp(),
+      ),
+    );
+  } catch (e, stackTrace) {
+    debugPrint('Uygulama başlatma hatası: $e');
+    debugPrint('Hata detayı: $stackTrace');
+    rethrow;
   }
-  
-  if (defaultTargetPlatform == TargetPlatform.macOS ||
-      defaultTargetPlatform == TargetPlatform.linux ||
-      defaultTargetPlatform == TargetPlatform.windows ||
-      defaultTargetPlatform == TargetPlatform.android ||
-      defaultTargetPlatform == TargetPlatform.iOS) {
-    sqfliteFfiInit();
-    databaseFactory = databaseFactoryFfi;
-  }
-  
-  runApp(
-    ChangeNotifierProvider(
-      create: (context) => AppData(),
-      child: const MyApp(),
-    ),
-  );
 }
 
 class MyApp extends StatelessWidget {
