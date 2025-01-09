@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:table_calendar/table_calendar.dart';
 import 'package:provider/provider.dart';
@@ -35,7 +36,7 @@ class _CalendarPageState extends State<CalendarPage> {
   }
 
   void _startImageTimer() {
-    _imageTimer = Timer.periodic(const Duration(seconds: 15), (timer) {
+    _imageTimer = Timer.periodic(const Duration(seconds: 7), (timer) {
       setState(() {
         _currentImageIndex = (_currentImageIndex + 1) % _backgroundImages.length;
       });
@@ -93,77 +94,82 @@ class _CalendarPageState extends State<CalendarPage> {
 
   @override
   Widget build(BuildContext context) {
-    return Stack(
+    return Column(
       children: [
-        // Arka plan resmi
-        AnimatedSwitcher(
-          duration: const Duration(seconds: 1),
-          child: Image.asset(
-            _backgroundImages[_currentImageIndex],
-            key: ValueKey<int>(_currentImageIndex),
-            fit: BoxFit.cover,
-            opacity: const AlwaysStoppedAnimation(0.15),
+        // Takvim kısmı
+        Container(
+          decoration: BoxDecoration(
+            color: Theme.of(context).scaffoldBackgroundColor.withOpacity(0.7),
+            borderRadius: BorderRadius.circular(16),
+          ),
+          margin: const EdgeInsets.all(8),
+          child: TableCalendar(
+            firstDay: DateTime.now().subtract(const Duration(days: 365)),
+            lastDay: DateTime.now().add(const Duration(days: 365)),
+            focusedDay: _focusedDay,
+            calendarFormat: _calendarFormat,
+            selectedDayPredicate: (day) => 
+                _selectedDay != null && isSameDay(_selectedDay!, day),
+            onDaySelected: (selectedDay, focusedDay) {
+              setState(() {
+                _selectedDay = selectedDay;
+                _focusedDay = focusedDay;
+              });
+            },
+            onFormatChanged: (format) {
+              setState(() {
+                _calendarFormat = format;
+              });
+            },
+            eventLoader: (day) {
+              return _getEventsForDay(day, Provider.of<AppData>(context, listen: false));
+            },
           ),
         ),
-        // Ana içerik
-        Column(
-          children: [
-            Container(
-              decoration: BoxDecoration(
-                color: Theme.of(context).scaffoldBackgroundColor.withOpacity(0.7),
-                borderRadius: BorderRadius.circular(16),
-              ),
-              margin: const EdgeInsets.all(8),
-              child: TableCalendar(
-                firstDay: DateTime.now().subtract(const Duration(days: 365)),
-                lastDay: DateTime.now().add(const Duration(days: 365)),
-                focusedDay: _focusedDay,
-                calendarFormat: _calendarFormat,
-                selectedDayPredicate: (day) => 
-                    _selectedDay != null && isSameDay(_selectedDay!, day),
-                onDaySelected: (selectedDay, focusedDay) {
-                  setState(() {
-                    _selectedDay = selectedDay;
-                    _focusedDay = focusedDay;
-                  });
-                },
-                onFormatChanged: (format) {
-                  setState(() {
-                    _calendarFormat = format;
-                  });
-                },
-                eventLoader: (day) {
-                  return _getEventsForDay(day, Provider.of<AppData>(context, listen: false));
-                },
-              ),
+        const SizedBox(height: 20),
+        // Seçili tarih ve ekleme butonu
+        if (_selectedDay != null)
+          Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 16.0),
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                Text(
+                  DateFormatter.formatDate(_selectedDay!),
+                  style: const TextStyle(
+                    fontSize: 18,
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
+                IconButton(
+                  icon: const Icon(
+                    Icons.add_circle_outline,
+                    color: Color(0xFF8E2DE2),
+                    size: 28,
+                  ),
+                  onPressed: () => _showAddDialog(context, _selectedDay!),
+                ),
+              ],
             ),
-            const SizedBox(height: 20),
-            if (_selectedDay != null)
-              Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 16.0),
-                child: Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children: [
-                    Text(
-                      DateFormatter.formatDate(_selectedDay!),
-                      style: const TextStyle(
-                        fontSize: 18,
-                        fontWeight: FontWeight.bold,
-                      ),
-                    ),
-                    IconButton(
-                      icon: const Icon(
-                        Icons.add_circle_outline,
-                        color: Color(0xFF8E2DE2),
-                        size: 28,
-                      ),
-                      onPressed: () => _showAddDialog(context, _selectedDay!),
-                    ),
-                  ],
+          ),
+        // Alt kısım (Liste ve arka plan)
+        Expanded(
+          child: Stack(
+            children: [
+              // Arka plan resmi
+              Positioned.fill(
+                child: AnimatedSwitcher(
+                  duration: const Duration(seconds: 1),
+                  child: Image.asset(
+                    _backgroundImages[_currentImageIndex],
+                    key: ValueKey<int>(_currentImageIndex),
+                    fit: BoxFit.cover,
+                    opacity: const AlwaysStoppedAnimation(0.4), // Transparanlığı azalttık
+                  ),
                 ),
               ),
-            Expanded(
-              child: Consumer<AppData>(
+              // Event listesi
+              Consumer<AppData>(
                 builder: (context, appData, child) {
                   final events = _selectedDay != null 
                       ? _getEventsForDay(_selectedDay!, appData)
@@ -234,8 +240,8 @@ class _CalendarPageState extends State<CalendarPage> {
                         );
                 },
               ),
-            ),
-          ],
+            ],
+          ),
         ),
       ],
     );
