@@ -46,11 +46,12 @@ class _TodoPageState extends State<TodoPage> {
                 IconButton(
                   icon: const Icon(Icons.calendar_today),
                   onPressed: () async {
+                    final DateTime now = DateTime.now();
                     final date = await showDatePicker(
                       context: context,
-                      initialDate: DateTime.now(),
-                      firstDate: DateTime.now(),
-                      lastDate: DateTime(2025),
+                      initialDate: now,
+                      firstDate: now,
+                      lastDate: DateTime(now.year + 5),
                     );
                     if (date != null) {
                       setState(() {
