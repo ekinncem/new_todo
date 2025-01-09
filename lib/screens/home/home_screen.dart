@@ -348,24 +348,29 @@ class EventCard extends StatelessWidget {
                   const SizedBox(height: 12),
                   Wrap(
                     spacing: 8,
-                    children: event.tags.map((tag) => Container(
-                      padding: const EdgeInsets.symmetric(
-                        horizontal: 12,
-                        vertical: 6,
-                      ),
-                      decoration: BoxDecoration(
-                        color: _getTagColor(tag),
-                        borderRadius: BorderRadius.circular(20),
-                      ),
-                      child: Text(
-                        tag,
-                        style: const TextStyle(
-                          color: Colors.white,
-                          fontSize: 12,
-                          fontWeight: FontWeight.w500,
+                    children: [
+                      Container(
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 12,
+                          vertical: 6,
+                        ),
+                        decoration: BoxDecoration(
+                          color: _getPriorityColor(event.priority ?? 'normal').withOpacity(0.1),
+                          borderRadius: BorderRadius.circular(20),
+                          border: Border.all(
+                            color: _getPriorityColor(event.priority ?? 'normal').withOpacity(0.3),
+                          ),
+                        ),
+                        child: Text(
+                          (event.priority ?? 'NORMAL').toUpperCase(),
+                          style: TextStyle(
+                            color: _getPriorityColor(event.priority ?? 'normal'),
+                            fontSize: 12,
+                            fontWeight: FontWeight.w500,
+                          ),
                         ),
                       ),
-                    )).toList(),
+                    ],
                   ),
                 ],
               ),
