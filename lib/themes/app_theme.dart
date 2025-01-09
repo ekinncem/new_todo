@@ -5,13 +5,14 @@ class AppTheme {
     return ThemeData(
       useMaterial3: true,
       brightness: Brightness.dark,
-      scaffoldBackgroundColor: const Color(0xFF1C1C1E),
+      scaffoldBackgroundColor: const Color(0xFF17171A),
       colorScheme: const ColorScheme.dark(
-        primary: Color(0xFF48484A),
+        primary: Color(0xFF2C2C2E),
         secondary: Color(0xFF48484A),
         surface: Color(0xFF2C2C2E),
-        background: Color(0xFF1C1C1E),
+        background: Color(0xFF17171A),
       ),
+      cardColor: Color(0xFF2C2C2E),
       
       // AppBar teması
       appBarTheme: const AppBarTheme(
