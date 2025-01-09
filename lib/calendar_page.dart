@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:todo_app/models/app_data.dart';
 import 'package:table_calendar/table_calendar.dart';
+import 'package:intl/intl.dart';
 
 class CalendarPage extends StatefulWidget {
   const CalendarPage({Key? key}) : super(key: key);
@@ -15,6 +16,7 @@ class _CalendarPageState extends State<CalendarPage> {
   DateTime _focusedDay = DateTime.now();
   DateTime? _selectedDay;
   final TextEditingController _eventController = TextEditingController();
+  String _selectedType = 'todo'; // Varsayılan olarak todo seçili
 
   @override
   void initState() {
@@ -22,16 +24,91 @@ class _CalendarPageState extends State<CalendarPage> {
     _selectedDay = _focusedDay;
   }
 
-  void _addEvent() {
-    if (_selectedDay != null && _eventController.text.isNotEmpty) {
-      context.read<AppData>().addEvent(_selectedDay!, _eventController.text);
-      _eventController.clear();
-      setState(() {});
-    }
+  void _showAddDialog() {
+    showDialog(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: const Text('Yeni Ekle'),
+        content: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            TextField(
+              controller: _eventController,
+              decoration: const InputDecoration(
+                hintText: 'Metin girin...',
+              ),
+            ),
+            const SizedBox(height: 16),
+            DropdownButton<String>(
+              value: _selectedType,
+              items: const [
+                DropdownMenuItem(
+                  value: 'todo',
+                  child: Text('Yapılacak'),
+                ),
+                DropdownMenuItem(
+                  value: 'note',
+                  child: Text('Not'),
+                ),
+              ],
+              onChanged: (value) {
+                setState(() {
+                  _selectedType = value!;
+                });
+              },
+            ),
+          ],
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context),
+            child: const Text('İptal'),
+          ),
+          TextButton(
+            onPressed: () {
+              if (_eventController.text.isNotEmpty && _selectedDay != null) {
+                if (_selectedType == 'todo') {
+                  context.read<AppData>().addTodo(
+                        _eventController.text,
+                        date: _selectedDay,
+                      );
+                } else {
+                  context.read<AppData>().addNote(
+                        _eventController.text,
+                        date: _selectedDay,
+                      );
+                }
+                _eventController.clear();
+                Navigator.pop(context);
+                setState(() {});
+              }
+            },
+            child: const Text('Ekle'),
+          ),
+        ],
+      ),
+    );
   }
 
-  List<String> _getEventsForDay(DateTime day) {
-    return context.read<AppData>().events[day] ?? [];
+  List<Map<String, dynamic>> _getEventsForDay(DateTime day) {
+    final appData = context.read<AppData>();
+    final List<Map<String, dynamic>> events = [];
+
+    // To-do'ları ekle
+    for (var todo in appData.todos) {
+      if (isSameDay(todo['date'], day)) {
+        events.add({...todo, 'type': 'todo'});
+      }
+    }
+
+    // Notları ekle
+    for (var note in appData.notes) {
+      if (isSameDay(note['date'], day)) {
+        events.add({...note, 'type': 'note'});
+      }
+    }
+
+    return events;
   }
 
   @override
@@ -61,44 +138,66 @@ class _CalendarPageState extends State<CalendarPage> {
                 _calendarFormat = format;
               });
             },
-            eventLoader: _getEventsForDay,
+            eventLoader: (day) => _getEventsForDay(day),
           ),
           const SizedBox(height: 8.0),
-          Padding(
-            padding: const EdgeInsets.all(8.0),
-            child: Row(
-              children: [
-                Expanded(
-                  child: TextField(
-                    controller: _eventController,
-                    decoration: const InputDecoration(
-                      hintText: 'Yeni etkinlik ekle...',
-                    ),
-                  ),
-                ),
-                IconButton(
-                  icon: const Icon(Icons.add),
-                  onPressed: _addEvent,
-                ),
-              ],
-            ),
-          ),
           Expanded(
             child: Consumer<AppData>(
               builder: (context, appData, child) {
                 final events = _selectedDay != null
-                    ? appData.events[_selectedDay] ?? []
+                    ? _getEventsForDay(_selectedDay!)
                     : [];
                 return ListView.builder(
                   itemCount: events.length,
                   itemBuilder: (context, index) {
+                    final event = events[index];
+                    final bool isTodo = event['type'] == 'todo';
+
                     return ListTile(
-                      title: Text(events[index]),
+                      leading: isTodo
+                          ? Checkbox(
+                              value: event['completed'] ?? false,
+                              onChanged: (_) {
+                                final todoIndex = appData.todos.indexWhere(
+                                  (todo) => todo['text'] == event['text'] && 
+                                          isSameDay(todo['date'], event['date']),
+                                );
+                                if (todoIndex != -1) {
+                                  appData.toggleTodo(todoIndex);
+                                }
+                              },
+                            )
+                          : const Icon(Icons.note),
+                      title: Text(
+                        event['text'],
+                        style: TextStyle(
+                          decoration: (isTodo && event['completed'] == true)
+                              ? TextDecoration.lineThrough
+                              : null,
+                        ),
+                      ),
+                      subtitle: Text(
+                        '${isTodo ? 'Yapılacak' : 'Not'} - ${DateFormat('dd/MM/yyyy').format(event['date'])}',
+                      ),
                       trailing: IconButton(
                         icon: const Icon(Icons.delete),
                         onPressed: () {
-                          if (_selectedDay != null) {
-                            appData.removeEvent(_selectedDay!, index);
+                          if (isTodo) {
+                            final todoIndex = appData.todos.indexWhere(
+                              (todo) => todo['text'] == event['text'] && 
+                                      isSameDay(todo['date'], event['date']),
+                            );
+                            if (todoIndex != -1) {
+                              appData.removeTodo(todoIndex);
+                            }
+                          } else {
+                            final noteIndex = appData.notes.indexWhere(
+                              (note) => note['text'] == event['text'] && 
+                                      isSameDay(note['date'], event['date']),
+                            );
+                            if (noteIndex != -1) {
+                              appData.removeNote(noteIndex);
+                            }
                           }
                         },
                       ),
@@ -109,6 +208,10 @@ class _CalendarPageState extends State<CalendarPage> {
             ),
           ),
         ],
+      ),
+      floatingActionButton: FloatingActionButton(
+        onPressed: _showAddDialog,
+        child: const Icon(Icons.add),
       ),
     );
   }
