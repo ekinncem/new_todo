@@ -184,7 +184,8 @@ class _HomeScreenState extends State<HomeScreen> with SingleTickerProviderStateM
           title: todo['text'],
           time: todoDate,
           type: 'todo',
-          tags: ['ME TIME'],
+          priority: todo['priority'] ?? 'normal',
+          tags: const [],
         ));
       }
     }
@@ -197,7 +198,8 @@ class _HomeScreenState extends State<HomeScreen> with SingleTickerProviderStateM
           title: note['text'],
           time: noteDate,
           type: 'note',
-          tags: ['FAMILY'],
+          priority: note['priority'] ?? 'normal',
+          tags: const [],
         ));
       }
     }
@@ -414,6 +416,7 @@ class EventItem {
   final String title;
   final DateTime time;
   final String type;
+  final String priority;
   final List<String> tags;
 
   EventItem({
@@ -421,6 +424,7 @@ class EventItem {
     required this.time,
     required this.type,
     required this.tags,
+    this.priority = 'normal',
   });
 }
 
