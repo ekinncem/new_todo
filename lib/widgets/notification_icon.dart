@@ -7,17 +7,33 @@ class NotificationIcon extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 8),
+      padding: const EdgeInsets.only(right: 4),
       child: Stack(
         children: [
-          IconButton(
-            icon: const Icon(Icons.notifications_outlined),
-            onPressed: () {
-              showDialog(
-                context: context,
-                builder: (context) => const NotificationsDialog(),
-              );
-            },
+          PopupMenuButton(
+            offset: const Offset(-220, 50),
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(28),
+            ),
+            color: const Color(0xFF1E1F25).withOpacity(0.95),
+            constraints: BoxConstraints(
+              maxWidth: MediaQuery.of(context).size.width * 0.9,
+              maxHeight: MediaQuery.of(context).size.height * 0.6,
+            ),
+            itemBuilder: (context) => [
+              PopupMenuItem(
+                enabled: false,
+                child: SizedBox(
+                  width: MediaQuery.of(context).size.width * 0.85,
+                  child: const NotificationsDialog(),
+                ),
+              ),
+            ],
+            icon: const Icon(
+              Icons.notifications_outlined,
+              color: Colors.white70,
+              size: 26,
+            ),
           ),
           Positioned(
             right: 8,
@@ -33,10 +49,11 @@ class NotificationIcon extends StatelessWidget {
                 minHeight: 14,
               ),
               child: const Text(
-                '2', // Bildirim sayısı buraya gelecek
+                '2',
                 style: TextStyle(
                   color: Colors.white,
                   fontSize: 8,
+                  fontFamily: 'Poppins',
                 ),
                 textAlign: TextAlign.center,
               ),

@@ -6,137 +6,159 @@ class NotificationsDialog extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Dialog(
-      shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.circular(28),
-      ),
-      child: Container(
-        width: MediaQuery.of(context).size.width * 0.9,
-        padding: const EdgeInsets.all(24),
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          crossAxisAlignment: CrossAxisAlignment.start,
+    return Column(
+      mainAxisSize: MainAxisSize.min,
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Row(
+          mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: [
-            Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: [
-                const Text(
-                  'Bildirimler',
-                  style: TextStyle(
-                    fontSize: 24,
-                    fontFamily: 'Poppins',
-                    fontWeight: FontWeight.bold,
+            const Text(
+              'Bildirimler',
+              style: TextStyle(
+                fontSize: 24,
+                fontFamily: 'Poppins',
+                fontWeight: FontWeight.w600,
+                color: Colors.white,
+              ),
+            ),
+            IconButton(
+              icon: Icon(
+                Icons.close,
+                color: Colors.white.withOpacity(0.6),
+              ),
+              onPressed: () => Navigator.pop(context),
+            ),
+          ],
+        ),
+        const SizedBox(height: 24),
+        SizedBox(
+          height: MediaQuery.of(context).size.height * 0.5,
+          child: ListView.builder(
+            itemCount: 2,
+            itemBuilder: (context, index) {
+              return Container(
+                margin: const EdgeInsets.only(bottom: 12),
+                decoration: BoxDecoration(
+                  color: Colors.white.withOpacity(0.05),
+                  borderRadius: BorderRadius.circular(16),
+                  border: Border.all(
+                    color: Colors.white.withOpacity(0.08),
                   ),
                 ),
-                IconButton(
-                  icon: const Icon(Icons.close),
-                  onPressed: () => Navigator.pop(context),
-                ),
-              ],
-            ),
-            const SizedBox(height: 24),
-            SizedBox(
-              height: MediaQuery.of(context).size.height * 0.5,
-              child: ListView.builder(
-                itemCount: 2, // Bildirim sayısı
-                itemBuilder: (context, index) {
-                  return Card(
-                    margin: const EdgeInsets.only(bottom: 12),
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(16),
-                    ),
-                    child: ListTile(
-                      contentPadding: const EdgeInsets.symmetric(
-                        horizontal: 16,
-                        vertical: 8,
-                      ),
-                      leading: Container(
-                        padding: const EdgeInsets.all(8),
-                        decoration: BoxDecoration(
-                          color: const Color(0xFF8E2DE2).withOpacity(0.1),
-                          borderRadius: BorderRadius.circular(12),
-                        ),
-                        child: const Icon(
-                          Icons.notifications_outlined,
-                          color: Color(0xFF8E2DE2),
-                        ),
-                      ),
-                      title: const Text(
+                child: Padding(
+                  padding: const EdgeInsets.all(16),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
                         'Yaklaşan görev',
                         style: TextStyle(
+                          fontSize: 18,
                           fontFamily: 'Poppins',
                           fontWeight: FontWeight.w600,
+                          color: Colors.white.withOpacity(0.9),
                         ),
                       ),
-                      subtitle: Text(
+                      const SizedBox(height: 8),
+                      Text(
                         'Görev adı - 1 gün kaldı',
                         style: TextStyle(
-                          color: Colors.white.withOpacity(0.6),
+                          fontSize: 14,
                           fontFamily: 'Poppins',
+                          color: Colors.white.withOpacity(0.6),
                         ),
                       ),
-                      trailing: Row(
-                        mainAxisSize: MainAxisSize.min,
+                      const SizedBox(height: 16),
+                      Row(
+                        mainAxisAlignment: MainAxisAlignment.end,
                         children: [
-                          IconButton(
-                            icon: const Icon(
-                              Icons.schedule,
-                              color: Color(0xFF8E2DE2),
-                            ),
+                          TextButton(
                             onPressed: () {
-                              // Bildirimi ertele
                               showDialog(
                                 context: context,
-                                builder: (context) => AlertDialog(
-                                  title: const Text('Bildirimi Ertele'),
-                                  content: Column(
-                                    mainAxisSize: MainAxisSize.min,
-                                    children: [
-                                      ListTile(
-                                        title: const Text('1 saat sonra'),
-                                        onTap: () {
-                                          // Erteleme işlemi
-                                          Navigator.pop(context);
-                                        },
-                                      ),
-                                      ListTile(
-                                        title: const Text('3 saat sonra'),
-                                        onTap: () {
-                                          // Erteleme işlemi
-                                          Navigator.pop(context);
-                                        },
-                                      ),
-                                      ListTile(
-                                        title: const Text('1 gün sonra'),
-                                        onTap: () {
-                                          // Erteleme işlemi
-                                          Navigator.pop(context);
-                                        },
-                                      ),
-                                    ],
+                                builder: (context) => Dialog(
+                                  backgroundColor: const Color(0xFF1E1F25).withOpacity(0.95),
+                                  shape: RoundedRectangleBorder(
+                                    borderRadius: BorderRadius.circular(20),
+                                  ),
+                                  child: Padding(
+                                    padding: const EdgeInsets.all(20),
+                                    child: Column(
+                                      mainAxisSize: MainAxisSize.min,
+                                      children: [
+                                        const Text(
+                                          'Bildirimi Ertele',
+                                          style: TextStyle(
+                                            fontSize: 20,
+                                            fontFamily: 'Poppins',
+                                            fontWeight: FontWeight.w600,
+                                          ),
+                                        ),
+                                        const SizedBox(height: 16),
+                                        _buildDelayOption(context, '1 saat sonra'),
+                                        _buildDelayOption(context, '3 saat sonra'),
+                                        _buildDelayOption(context, '1 gün sonra'),
+                                      ],
+                                    ),
                                   ),
                                 ),
                               );
                             },
-                          ),
-                          IconButton(
-                            icon: const Icon(
-                              Icons.delete_outline,
-                              color: Colors.red,
+                            child: Text(
+                              'Ertele',
+                              style: TextStyle(
+                                color: Colors.white.withOpacity(0.8),
+                                fontFamily: 'Poppins',
+                              ),
                             ),
+                          ),
+                          TextButton(
                             onPressed: () {
-                              // Bildirimi sil
                               NotificationService.instance.cancelEventNotifications(index);
+                              Navigator.pop(context);
                             },
+                            child: const Text(
+                              'Sil',
+                              style: TextStyle(
+                                color: Colors.red,
+                                fontFamily: 'Poppins',
+                              ),
+                            ),
                           ),
                         ],
                       ),
-                    ),
-                  );
-                },
-              ),
-            ),
-          ],
+                    ],
+                  ),
+                ),
+              );
+            },
+          ),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildDelayOption(BuildContext context, String text) {
+    return InkWell(
+      onTap: () {
+        // Erteleme işlemi
+        Navigator.pop(context);
+      },
+      child: Container(
+        width: double.infinity,
+        padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 16),
+        margin: const EdgeInsets.only(bottom: 8),
+        decoration: BoxDecoration(
+          color: Colors.white.withOpacity(0.05),
+          borderRadius: BorderRadius.circular(12),
+        ),
+        child: Text(
+          text,
+          style: const TextStyle(
+            fontFamily: 'Poppins',
+            fontSize: 16,
+          ),
         ),
       ),
     );
