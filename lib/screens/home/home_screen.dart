@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:todo_app/models/app_data.dart';
@@ -19,11 +20,21 @@ class _HomeScreenState extends State<HomeScreen> with SingleTickerProviderStateM
   AnimationController? _fabAnimationController;
   Animation<double>? _fabScaleAnimation;
   Animation<double>? _fabRotateAnimation;
+  int _currentImageIndex = 0;
+  Timer? _imageTimer;
+
+  final List<String> _backgroundImages = [
+    'assets/images/image1.jpg',
+    'assets/images/image2.jpg',
+    'assets/images/image3.jpg',
+    'assets/images/image4.jpg',
+  ];
 
   @override
   void initState() {
     super.initState();
     _setupAnimations();
+    _startImageTimer();
   }
 
   void _setupAnimations() {
@@ -45,6 +56,14 @@ class _HomeScreenState extends State<HomeScreen> with SingleTickerProviderStateM
         curve: Curves.easeInOut,
       ),
     );
+  }
+
+  void _startImageTimer() {
+    _imageTimer = Timer.periodic(const Duration(seconds: 6), (timer) {
+      setState(() {
+        _currentImageIndex = (_currentImageIndex + 1) % _backgroundImages.length;
+      });
+    });
   }
 
   Widget _buildFAB() {
@@ -95,6 +114,7 @@ class _HomeScreenState extends State<HomeScreen> with SingleTickerProviderStateM
 
   @override
   void dispose() {
+    _imageTimer?.cancel();
     _fabAnimationController?.dispose();
     super.dispose();
   }
@@ -212,93 +232,137 @@ class _HomeScreenState extends State<HomeScreen> with SingleTickerProviderStateM
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      backgroundColor: Theme.of(context).scaffoldBackgroundColor,
-      appBar: AppBar(
-        backgroundColor: Colors.transparent,
-        elevation: 0,
-        automaticallyImplyLeading: false,
-        actions: [
-          Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 16),
-            child: GestureDetector(
-              onTap: () {
-                showDialog(
-                  context: context,
-                  builder: (context) => const EditProfileDialog(),
-                );
-              },
-              child: Consumer<UserData>(
-                builder: (context, userData, child) {
-                  return Container(
-                    decoration: BoxDecoration(
-                      shape: BoxShape.circle,
-                      border: Border.all(color: Colors.white24),
-                    ),
-                    child: CircleAvatar(
-                      radius: 18,
-                      backgroundColor: Colors.transparent,
-                      child: userData.photoUrl != null
-                          ? ClipOval(
-                              child: Image.network(
-                                userData.photoUrl!,
-                                width: 36,
-                                height: 36,
-                                fit: BoxFit.cover,
-                              ),
-                            )
-                          : Text(
-                              userData.name?.isNotEmpty == true
-                                  ? userData.name![0].toUpperCase()
-                                  : '?',
-                              style: const TextStyle(
-                                color: Colors.white70,
-                                fontSize: 16,
-                                fontWeight: FontWeight.bold,
-                              ),
-                            ),
-                    ),
-                  );
-                },
+    return Stack(
+      children: [
+        // Ortak arka plan resmi
+        Positioned.fill(
+          child: AnimatedSwitcher(
+            duration: const Duration(milliseconds: 3000),
+            transitionBuilder: (Widget child, Animation<double> animation) {
+              return FadeTransition(
+                opacity: CurvedAnimation(
+                  parent: animation,
+                  curve: Curves.easeInOut,
+                ),
+                child: child,
+              );
+            },
+            child: Container(
+              key: ValueKey<int>(_currentImageIndex),
+              decoration: BoxDecoration(
+                gradient: LinearGradient(
+                  begin: Alignment.topCenter,
+                  end: Alignment.bottomCenter,
+                  colors: [
+                    Colors.black.withOpacity(0.6),  // Üst fade artırıldı
+                    Colors.black.withOpacity(0.1),  // Orta kısım daha şeffaf
+                    Colors.black.withOpacity(0.6),  // Alt fade artırıldı
+                  ],
+                  stops: const [0.0, 0.5, 1.0],  // Gradient dağılımı ayarlandı
+                ),
+                image: DecorationImage(
+                  image: AssetImage(_backgroundImages[_currentImageIndex]),
+                  fit: BoxFit.cover,
+                  opacity: 0.3,
+                  colorFilter: ColorFilter.mode(
+                    Colors.black.withOpacity(0.2),
+                    BlendMode.softLight,
+                  ),
+                ),
               ),
             ),
           ),
-        ],
-      ),
-      body: _selectedIndex == 0 ? _buildHomeContent() : const CalendarPage(),
-      floatingActionButton: _buildFAB(),
-      bottomNavigationBar: Container(
-        decoration: BoxDecoration(
-          border: Border(
-            top: BorderSide(
-              color: Colors.white.withOpacity(0.1),
+        ),
+        // Ana içerik
+        Scaffold(
+          backgroundColor: Colors.transparent,  // Scaffold arka planı şeffaf
+          appBar: AppBar(
+            backgroundColor: Colors.transparent,
+            elevation: 0,
+            automaticallyImplyLeading: false,
+            actions: [
+              Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 16),
+                child: GestureDetector(
+                  onTap: () {
+                    showDialog(
+                      context: context,
+                      builder: (context) => const EditProfileDialog(),
+                    );
+                  },
+                  child: Consumer<UserData>(
+                    builder: (context, userData, child) {
+                      return Container(
+                        decoration: BoxDecoration(
+                          shape: BoxShape.circle,
+                          border: Border.all(color: Colors.white24),
+                        ),
+                        child: CircleAvatar(
+                          radius: 18,
+                          backgroundColor: Colors.transparent,
+                          child: userData.photoUrl != null
+                              ? ClipOval(
+                                  child: Image.network(
+                                    userData.photoUrl!,
+                                    width: 36,
+                                    height: 36,
+                                    fit: BoxFit.cover,
+                                  ),
+                                )
+                              : Text(
+                                  userData.name?.isNotEmpty == true
+                                      ? userData.name![0].toUpperCase()
+                                      : '?',
+                                  style: const TextStyle(
+                                    color: Colors.white70,
+                                    fontSize: 16,
+                                    fontWeight: FontWeight.bold,
+                                  ),
+                                ),
+                        ),
+                      );
+                    },
+                  ),
+                ),
+              ),
+            ],
+          ),
+          body: _selectedIndex == 0 ? _buildHomeContent() : const CalendarPage(),
+          floatingActionButton: _buildFAB(),
+          bottomNavigationBar: Container(
+            decoration: BoxDecoration(
+              border: Border(
+                top: BorderSide(
+                  color: Colors.white.withOpacity(0.1),
+                ),
+              ),
+            ),
+            child: BottomNavigationBar(
+              backgroundColor: Theme.of(context).scaffoldBackgroundColor,
+              items: const [
+                BottomNavigationBarItem(
+                  icon: Icon(Icons.home_outlined),
+                  activeIcon: Icon(Icons.home),
+                  label: 'Home',
+                ),
+                BottomNavigationBarItem(
+                  icon: Icon(Icons.calendar_today_outlined),
+                  activeIcon: Icon(Icons.calendar_today),
+                  label: 'Calendar',
+                ),
+              ],
+              currentIndex: _selectedIndex,
+              selectedItemColor: Colors.white,
+              unselectedItemColor: Colors.white54,
+              onTap: (index) {
+                setState(() {
+                  _selectedIndex = index;
+                });
+              },
             ),
           ),
         ),
-        child: BottomNavigationBar(
-          backgroundColor: Theme.of(context).scaffoldBackgroundColor,
-          items: const [
-            BottomNavigationBarItem(
-              icon: Icon(Icons.home_outlined),
-              activeIcon: Icon(Icons.home),
-              label: 'Home',
-            ),
-            BottomNavigationBarItem(
-              icon: Icon(Icons.calendar_today_outlined),
-              activeIcon: Icon(Icons.calendar_today),
-              label: 'Calendar',
-            ),
-          ],
-          currentIndex: _selectedIndex,
-          selectedItemColor: Colors.white,
-          unselectedItemColor: Colors.white54,
-          onTap: (index) {
-            setState(() {
-              _selectedIndex = index;
-            });
-          },
-        ),
-      ),
+      ],
     );
   }
 }

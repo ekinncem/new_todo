@@ -94,224 +94,181 @@ class _CalendarPageState extends State<CalendarPage> {
 
   @override
   Widget build(BuildContext context) {
-    return Stack(
+    return Column(
       children: [
-        // Arka plan resmi (en altta)
-        Positioned.fill(
-          child: AnimatedSwitcher(
-            duration: const Duration(milliseconds: 3000),
-            transitionBuilder: (Widget child, Animation<double> animation) {
-              return FadeTransition(
-                opacity: CurvedAnimation(
-                  parent: animation,
-                  curve: Curves.easeInOut,
-                ),
-                child: child,
-              );
+        // Takvim
+        Container(
+          decoration: BoxDecoration(
+            color: const Color(0xFF1E1F25).withOpacity(0.85),
+            borderRadius: BorderRadius.circular(16),
+          ),
+          margin: const EdgeInsets.all(8),
+          padding: const EdgeInsets.symmetric(vertical: 12),
+          child: TableCalendar(
+            firstDay: DateTime.now().subtract(const Duration(days: 365)),
+            lastDay: DateTime.now().add(const Duration(days: 365)),
+            focusedDay: _focusedDay,
+            calendarFormat: _calendarFormat,
+            selectedDayPredicate: (day) => 
+                _selectedDay != null && isSameDay(_selectedDay!, day),
+            onDaySelected: (selectedDay, focusedDay) {
+              setState(() {
+                _selectedDay = selectedDay;
+                _focusedDay = focusedDay;
+              });
             },
-            child: Container(
-              key: ValueKey<int>(_currentImageIndex),
-              decoration: BoxDecoration(
-                gradient: LinearGradient(
-                  begin: Alignment.topCenter,
-                  end: Alignment.bottomCenter,
-                  colors: [
-                    Colors.black.withOpacity(0.4),
-                    Colors.black.withOpacity(0.1),
-                    Colors.black.withOpacity(0.4),
-                  ],
-                ),
-                image: DecorationImage(
-                  image: AssetImage(_backgroundImages[_currentImageIndex]),
-                  fit: BoxFit.cover,
-                  opacity: 0.3,
-                  colorFilter: ColorFilter.mode(
-                    Colors.black.withOpacity(0.2),
-                    BlendMode.softLight,
-                  ),
-                ),
+            onFormatChanged: (format) {
+              setState(() {
+                _calendarFormat = format;
+              });
+            },
+            eventLoader: (day) {
+              return _getEventsForDay(day, Provider.of<AppData>(context, listen: false));
+            },
+            calendarStyle: CalendarStyle(
+              isTodayHighlighted: true,
+              outsideDaysVisible: false,
+              
+              defaultTextStyle: const TextStyle(color: Colors.white70),
+              weekendTextStyle: const TextStyle(color: Colors.white70),
+              outsideTextStyle: const TextStyle(color: Colors.white38),
+              
+              selectedDecoration: BoxDecoration(
+                color: const Color(0xFF5B5FC7),
+                shape: BoxShape.circle,
               ),
+              selectedTextStyle: const TextStyle(color: Colors.white),
+              
+              todayDecoration: BoxDecoration(
+                border: Border.all(color: const Color(0xFF5B5FC7), width: 1.5),
+                shape: BoxShape.circle,
+              ),
+              todayTextStyle: const TextStyle(color: Colors.white),
+
+              markerDecoration: const BoxDecoration(
+                color: Color(0xFF5B5FC7),
+                shape: BoxShape.circle,
+              ),
+              markerSize: 5,
+              markersMaxCount: 1,
+            ),
+            
+            headerStyle: const HeaderStyle(
+              titleTextStyle: TextStyle(
+                color: Colors.white,
+                fontSize: 20,
+                fontWeight: FontWeight.w500,
+              ),
+              formatButtonVisible: false,
+              leftChevronIcon: Icon(Icons.chevron_left, color: Colors.white70),
+              rightChevronIcon: Icon(Icons.chevron_right, color: Colors.white70),
+            ),
+            
+            daysOfWeekStyle: const DaysOfWeekStyle(
+              weekdayStyle: TextStyle(color: Colors.white54),
+              weekendStyle: TextStyle(color: Colors.white54),
             ),
           ),
         ),
-        // Ana içerik (üstte)
-        Column(
-          children: [
-            // Takvim
-            Container(
-              decoration: BoxDecoration(
-                color: const Color(0xFF1E1F25).withOpacity(0.85),
-                borderRadius: BorderRadius.circular(16),
-              ),
-              margin: const EdgeInsets.all(8),
-              padding: const EdgeInsets.symmetric(vertical: 12),
-              child: TableCalendar(
-                firstDay: DateTime.now().subtract(const Duration(days: 365)),
-                lastDay: DateTime.now().add(const Duration(days: 365)),
-                focusedDay: _focusedDay,
-                calendarFormat: _calendarFormat,
-                selectedDayPredicate: (day) => 
-                    _selectedDay != null && isSameDay(_selectedDay!, day),
-                onDaySelected: (selectedDay, focusedDay) {
-                  setState(() {
-                    _selectedDay = selectedDay;
-                    _focusedDay = focusedDay;
-                  });
-                },
-                onFormatChanged: (format) {
-                  setState(() {
-                    _calendarFormat = format;
-                  });
-                },
-                eventLoader: (day) {
-                  return _getEventsForDay(day, Provider.of<AppData>(context, listen: false));
-                },
-                calendarStyle: CalendarStyle(
-                  isTodayHighlighted: true,
-                  outsideDaysVisible: false,
-                  
-                  defaultTextStyle: const TextStyle(color: Colors.white70),
-                  weekendTextStyle: const TextStyle(color: Colors.white70),
-                  outsideTextStyle: const TextStyle(color: Colors.white38),
-                  
-                  selectedDecoration: BoxDecoration(
-                    color: const Color(0xFF5B5FC7),
-                    shape: BoxShape.circle,
+        const SizedBox(height: 20),
+        // Seçili tarih ve ekleme butonu
+        if (_selectedDay != null)
+          Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 16.0),
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                Text(
+                  DateFormatter.formatDate(_selectedDay!),
+                  style: const TextStyle(
+                    fontSize: 18,
+                    fontWeight: FontWeight.bold,
                   ),
-                  selectedTextStyle: const TextStyle(color: Colors.white),
-                  
-                  todayDecoration: BoxDecoration(
-                    border: Border.all(color: const Color(0xFF5B5FC7), width: 1.5),
-                    shape: BoxShape.circle,
-                  ),
-                  todayTextStyle: const TextStyle(color: Colors.white),
-
-                  markerDecoration: const BoxDecoration(
-                    color: Color(0xFF5B5FC7),
-                    shape: BoxShape.circle,
-                  ),
-                  markerSize: 5,
-                  markersMaxCount: 1,
                 ),
-                
-                headerStyle: const HeaderStyle(
-                  titleTextStyle: TextStyle(
-                    color: Colors.white,
-                    fontSize: 20,
-                    fontWeight: FontWeight.w500,
+                IconButton(
+                  icon: const Icon(
+                    Icons.add_circle_outline,
+                    color: Color(0xFF8E2DE2),
+                    size: 28,
                   ),
-                  formatButtonVisible: false,
-                  leftChevronIcon: Icon(Icons.chevron_left, color: Colors.white70),
-                  rightChevronIcon: Icon(Icons.chevron_right, color: Colors.white70),
+                  onPressed: () => _showAddDialog(context, _selectedDay!),
                 ),
-                
-                daysOfWeekStyle: const DaysOfWeekStyle(
-                  weekdayStyle: TextStyle(color: Colors.white54),
-                  weekendStyle: TextStyle(color: Colors.white54),
-                ),
-              ),
+              ],
             ),
-            const SizedBox(height: 20),
-            // Seçili tarih ve ekleme butonu
-            if (_selectedDay != null)
-              Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 16.0),
-                child: Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children: [
-                    Text(
-                      DateFormatter.formatDate(_selectedDay!),
-                      style: const TextStyle(
-                        fontSize: 18,
-                        fontWeight: FontWeight.bold,
-                      ),
-                    ),
-                    IconButton(
-                      icon: const Icon(
-                        Icons.add_circle_outline,
-                        color: Color(0xFF8E2DE2),
-                        size: 28,
-                      ),
-                      onPressed: () => _showAddDialog(context, _selectedDay!),
-                    ),
-                  ],
-                ),
-              ),
-            // Event listesi
-            Expanded(
-              child: Consumer<AppData>(
-                builder: (context, appData, child) {
-                  final events = _selectedDay != null 
-                      ? _getEventsForDay(_selectedDay!, appData)
-                      : [];
+          ),
+        // Event listesi
+        Expanded(
+          child: Consumer<AppData>(
+            builder: (context, appData, child) {
+              final events = _selectedDay != null 
+                  ? _getEventsForDay(_selectedDay!, appData)
+                  : [];
 
-                  if (_selectedDay == null) {
-                    return Center(
+              if (_selectedDay == null) {
+                return Center(
+                  child: Text(
+                    'Select a date to see events',
+                    style: TextStyle(
+                      color: Colors.white.withOpacity(0.6),
+                    ),
+                  ),
+                );
+              }
+
+              return events.isEmpty
+                  ? Center(
                       child: Text(
-                        'Select a date to see events',
+                        'No events for ${DateFormatter.formatDate(_selectedDay!)}',
                         style: TextStyle(
                           color: Colors.white.withOpacity(0.6),
                         ),
                       ),
-                    );
-                  }
-
-                  return events.isEmpty
-                      ? Center(
-                          child: Text(
-                            'No events for ${DateFormatter.formatDate(_selectedDay!)}',
-                            style: TextStyle(
-                              color: Colors.white.withOpacity(0.6),
-                            ),
+                    )
+                  : ListView.builder(
+                      itemCount: events.length,
+                      itemBuilder: (context, index) {
+                        final event = events[index];
+                        return Card(
+                          margin: const EdgeInsets.symmetric(
+                            horizontal: 16,
+                            vertical: 4,
                           ),
-                        )
-                      : ListView.builder(
-                          itemCount: events.length,
-                          itemBuilder: (context, index) {
-                            final event = events[index];
-                            return Card(
-                              margin: const EdgeInsets.symmetric(
-                                horizontal: 16,
-                                vertical: 4,
-                              ),
-                              child: ListTile(
-                                leading: Icon(
-                                  event['type'] == 'todo' ? Icons.check_circle_outline : Icons.note,
-                                  color: event['type'] == 'todo' ? Colors.blue : Colors.green,
-                                ),
-                                title: Text(
-                                  event['text'],
-                                  style: TextStyle(
-                                    decoration: event['type'] == 'todo' && event['completed'] == true
-                                        ? TextDecoration.lineThrough
-                                        : null,
-                                  ),
-                                ),
-                                subtitle: Text(
-                                  DateFormatter.formatTime(event['date']),
-                                ),
-                                trailing: event['type'] == 'todo'
-                                    ? Checkbox(
-                                        value: event['completed'] ?? false,
-                                        onChanged: (bool? value) {
-                                          final todoIndex = appData.todos.indexWhere(
-                                            (todo) => todo['text'] == event['text'] &&
-                                                    DateFormatter.isSameDay(todo['date'], event['date']),
-                                          );
-                                          if (todoIndex != -1) {
-                                            appData.toggleTodo(todoIndex);
-                                          }
-                                        },
-                                      )
+                          child: ListTile(
+                            leading: Icon(
+                              event['type'] == 'todo' ? Icons.check_circle_outline : Icons.note,
+                              color: event['type'] == 'todo' ? Colors.blue : Colors.green,
+                            ),
+                            title: Text(
+                              event['text'],
+                              style: TextStyle(
+                                decoration: event['type'] == 'todo' && event['completed'] == true
+                                    ? TextDecoration.lineThrough
                                     : null,
                               ),
-                            );
-                          },
+                            ),
+                            subtitle: Text(
+                              DateFormatter.formatTime(event['date']),
+                            ),
+                            trailing: event['type'] == 'todo'
+                                ? Checkbox(
+                                    value: event['completed'] ?? false,
+                                    onChanged: (bool? value) {
+                                      final todoIndex = appData.todos.indexWhere(
+                                        (todo) => todo['text'] == event['text'] &&
+                                                DateFormatter.isSameDay(todo['date'], event['date']),
+                                      );
+                                      if (todoIndex != -1) {
+                                        appData.toggleTodo(todoIndex);
+                                      }
+                                    },
+                                  )
+                                : null,
+                          ),
                         );
-                },
-              ),
-            ),
-          ],
+                      },
+                    );
+            },
+          ),
         ),
       ],
     );
