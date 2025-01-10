@@ -94,120 +94,164 @@ class _CalendarPageState extends State<CalendarPage> {
 
   @override
   Widget build(BuildContext context) {
-    return Column(
+    return Stack(
       children: [
-        // Takvim kısmı
-        Container(
-          decoration: BoxDecoration(
-            color: Theme.of(context).scaffoldBackgroundColor.withOpacity(0.7),
-            borderRadius: BorderRadius.circular(16),
-          ),
-          margin: const EdgeInsets.all(8),
-          child: TableCalendar(
-            firstDay: DateTime.now().subtract(const Duration(days: 365)),
-            lastDay: DateTime.now().add(const Duration(days: 365)),
-            focusedDay: _focusedDay,
-            calendarFormat: _calendarFormat,
-            selectedDayPredicate: (day) => 
-                _selectedDay != null && isSameDay(_selectedDay!, day),
-            onDaySelected: (selectedDay, focusedDay) {
-              setState(() {
-                _selectedDay = selectedDay;
-                _focusedDay = focusedDay;
-              });
+        // Arka plan resmi (en altta)
+        Positioned.fill(
+          child: ShaderMask(
+            shaderCallback: (Rect bounds) {
+              return LinearGradient(
+                begin: Alignment.topCenter,
+                end: Alignment.bottomCenter,
+                colors: [
+                  Colors.transparent,
+                  Colors.black.withOpacity(0.95),
+                  Colors.black,
+                  Colors.black,
+                ],
+                stops: const [0.0, 0.2, 0.4, 0.6],
+              ).createShader(bounds);
             },
-            onFormatChanged: (format) {
-              setState(() {
-                _calendarFormat = format;
-              });
-            },
-            eventLoader: (day) {
-              return _getEventsForDay(day, Provider.of<AppData>(context, listen: false));
-            },
-          ),
-        ),
-        const SizedBox(height: 20),
-        // Seçili tarih ve ekleme butonu
-        if (_selectedDay != null)
-          Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 16.0),
-            child: Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: [
-                Text(
-                  DateFormatter.formatDate(_selectedDay!),
-                  style: const TextStyle(
-                    fontSize: 18,
-                    fontWeight: FontWeight.bold,
+            blendMode: BlendMode.dstIn,
+            child: AnimatedSwitcher(
+              duration: const Duration(milliseconds: 1500),
+              transitionBuilder: (Widget child, Animation<double> animation) {
+                return FadeTransition(
+                  opacity: Tween<double>(
+                    begin: 0.0,
+                    end: 1.0,
+                  ).animate(
+                    CurvedAnimation(
+                      parent: animation,
+                      curve: Curves.easeInOut,
+                    ),
                   ),
-                ),
-                IconButton(
-                  icon: const Icon(
-                    Icons.add_circle_outline,
-                    color: Color(0xFF8E2DE2),
-                    size: 28,
-                  ),
-                  onPressed: () => _showAddDialog(context, _selectedDay!),
-                ),
-              ],
-            ),
-          ),
-        // Alt kısım (Liste ve arka plan)
-        Expanded(
-          child: Stack(
-            children: [
-              // Arka plan resmi
-              Positioned.fill(
-                child: ShaderMask(
-                  shaderCallback: (Rect bounds) {
-                    return LinearGradient(
-                      begin: Alignment.topCenter,
-                      end: Alignment.bottomCenter,
-                      colors: [
-                        Colors.transparent,
-                        Colors.black.withOpacity(0.95),
-                        Colors.black,
-                        Colors.black,
-                      ],
-                      stops: const [0.0, 0.2, 0.4, 0.6],
-                    ).createShader(bounds);
-                  },
-                  blendMode: BlendMode.dstIn,
-                  child: AnimatedSwitcher(
-                    duration: const Duration(milliseconds: 1500),
-                    transitionBuilder: (Widget child, Animation<double> animation) {
-                      return FadeTransition(
-                        opacity: Tween<double>(
-                          begin: 0.0,
-                          end: 1.0,
-                        ).animate(
-                          CurvedAnimation(
-                            parent: animation,
-                            curve: Curves.easeInOut,
-                          ),
-                        ),
-                        child: child,
-                      );
-                    },
-                    child: Container(
-                      key: ValueKey<int>(_currentImageIndex),
-                      decoration: BoxDecoration(
-                        image: DecorationImage(
-                          image: AssetImage(_backgroundImages[_currentImageIndex]),
-                          fit: BoxFit.cover,
-                          opacity: 0.5,
-                          colorFilter: ColorFilter.mode(
-                            Colors.black.withOpacity(0.25),
-                            BlendMode.darken,
-                          ),
-                        ),
-                      ),
+                  child: child,
+                );
+              },
+              child: Container(
+                key: ValueKey<int>(_currentImageIndex),
+                decoration: BoxDecoration(
+                  image: DecorationImage(
+                    image: AssetImage(_backgroundImages[_currentImageIndex]),
+                    fit: BoxFit.cover,
+                    opacity: 0.5,
+                    colorFilter: ColorFilter.mode(
+                      Colors.black.withOpacity(0.25),
+                      BlendMode.darken,
                     ),
                   ),
                 ),
               ),
-              // Event listesi
-              Consumer<AppData>(
+            ),
+          ),
+        ),
+        // Ana içerik (üstte)
+        Column(
+          children: [
+            // Takvim
+            Container(
+              decoration: BoxDecoration(
+                color: const Color(0xFF1E1F25),
+                borderRadius: BorderRadius.circular(16),
+              ),
+              margin: const EdgeInsets.all(8),
+              padding: const EdgeInsets.symmetric(vertical: 12),
+              child: TableCalendar(
+                firstDay: DateTime.now().subtract(const Duration(days: 365)),
+                lastDay: DateTime.now().add(const Duration(days: 365)),
+                focusedDay: _focusedDay,
+                calendarFormat: _calendarFormat,
+                selectedDayPredicate: (day) => 
+                    _selectedDay != null && isSameDay(_selectedDay!, day),
+                onDaySelected: (selectedDay, focusedDay) {
+                  setState(() {
+                    _selectedDay = selectedDay;
+                    _focusedDay = focusedDay;
+                  });
+                },
+                onFormatChanged: (format) {
+                  setState(() {
+                    _calendarFormat = format;
+                  });
+                },
+                eventLoader: (day) {
+                  return _getEventsForDay(day, Provider.of<AppData>(context, listen: false));
+                },
+                calendarStyle: CalendarStyle(
+                  isTodayHighlighted: true,
+                  outsideDaysVisible: false,
+                  
+                  defaultTextStyle: const TextStyle(color: Colors.white70),
+                  weekendTextStyle: const TextStyle(color: Colors.white70),
+                  outsideTextStyle: const TextStyle(color: Colors.white38),
+                  
+                  selectedDecoration: BoxDecoration(
+                    color: const Color(0xFF5B5FC7),
+                    shape: BoxShape.circle,
+                  ),
+                  selectedTextStyle: const TextStyle(color: Colors.white),
+                  
+                  todayDecoration: BoxDecoration(
+                    border: Border.all(color: const Color(0xFF5B5FC7), width: 1.5),
+                    shape: BoxShape.circle,
+                  ),
+                  todayTextStyle: const TextStyle(color: Colors.white),
+
+                  markerDecoration: const BoxDecoration(
+                    color: Color(0xFF5B5FC7),
+                    shape: BoxShape.circle,
+                  ),
+                  markerSize: 5,
+                  markersMaxCount: 1,
+                ),
+                
+                headerStyle: const HeaderStyle(
+                  titleTextStyle: TextStyle(
+                    color: Colors.white,
+                    fontSize: 20,
+                    fontWeight: FontWeight.w500,
+                  ),
+                  formatButtonVisible: false,
+                  leftChevronIcon: Icon(Icons.chevron_left, color: Colors.white70),
+                  rightChevronIcon: Icon(Icons.chevron_right, color: Colors.white70),
+                ),
+                
+                daysOfWeekStyle: const DaysOfWeekStyle(
+                  weekdayStyle: TextStyle(color: Colors.white54),
+                  weekendStyle: TextStyle(color: Colors.white54),
+                ),
+              ),
+            ),
+            const SizedBox(height: 20),
+            // Seçili tarih ve ekleme butonu
+            if (_selectedDay != null)
+              Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 16.0),
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    Text(
+                      DateFormatter.formatDate(_selectedDay!),
+                      style: const TextStyle(
+                        fontSize: 18,
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+                    IconButton(
+                      icon: const Icon(
+                        Icons.add_circle_outline,
+                        color: Color(0xFF8E2DE2),
+                        size: 28,
+                      ),
+                      onPressed: () => _showAddDialog(context, _selectedDay!),
+                    ),
+                  ],
+                ),
+              ),
+            // Event listesi
+            Expanded(
+              child: Consumer<AppData>(
                 builder: (context, appData, child) {
                   final events = _selectedDay != null 
                       ? _getEventsForDay(_selectedDay!, appData)
@@ -278,8 +322,8 @@ class _CalendarPageState extends State<CalendarPage> {
                         );
                 },
               ),
-            ],
-          ),
+            ),
+          ],
         ),
       ],
     );
