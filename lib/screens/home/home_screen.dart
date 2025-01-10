@@ -59,27 +59,13 @@ class _HomeScreenState extends State<HomeScreen> with SingleTickerProviderStateM
   }
 
   void _startImageTimer() {
-    try {
-      _imageTimer = Timer.periodic(const Duration(seconds: 6), (timer) {
-        if (!mounted) {
-          timer.cancel();
-          return;
-        }
+    _imageTimer = Timer.periodic(const Duration(seconds: 6), (timer) {
+      if (mounted) {
         setState(() {
-          try {
-            _currentImageIndex = (_currentImageIndex + 1) % _backgroundImages.length;
-            debugPrint('Image changed to index: $_currentImageIndex');
-          } catch (e, stackTrace) {
-            debugPrint('Error changing image: $e');
-            debugPrint('Stack trace: $stackTrace');
-            timer.cancel();
-          }
+          _currentImageIndex = (_currentImageIndex + 1) % _backgroundImages.length;
         });
-      });
-    } catch (e, stackTrace) {
-      debugPrint('Error starting timer: $e');
-      debugPrint('Stack trace: $stackTrace');
-    }
+      }
+    });
   }
 
   Widget _buildFAB() {
@@ -255,52 +241,48 @@ class _HomeScreenState extends State<HomeScreen> with SingleTickerProviderStateM
   Widget build(BuildContext context) {
     return Stack(
       children: [
-        // Ortak arka plan resmi
+        // Arka plan resmi (en altta)
         Positioned.fill(
-          child: AnimatedSwitcher(
-            duration: const Duration(milliseconds: 3000),
-            transitionBuilder: (Widget child, Animation<double> animation) {
-              return FadeTransition(
-                opacity: CurvedAnimation(
-                  parent: animation,
-                  curve: Curves.easeInOut,
-                ),
-                child: child,
-              );
+          child: ShaderMask(
+            shaderCallback: (Rect bounds) {
+              return LinearGradient(
+                begin: Alignment.topCenter,
+                end: Alignment.bottomCenter,
+                colors: [
+                  Colors.transparent,
+                  Colors.black.withOpacity(0.95),
+                  Colors.black,
+                  Colors.black,
+                ],
+                stops: const [0.0, 0.2, 0.4, 0.6],
+              ).createShader(bounds);
             },
-            child: Builder(
-              builder: (context) {
-                try {
-                  return Container(
-                    key: ValueKey<int>(_currentImageIndex),
-                    decoration: BoxDecoration(
-                      gradient: LinearGradient(
-                        begin: Alignment.topCenter,
-                        end: Alignment.bottomCenter,
-                        colors: [
-                          Colors.black.withOpacity(0.6),
-                          Colors.black.withOpacity(0.1),
-                          Colors.black.withOpacity(0.6),
-                        ],
-                        stops: const [0.0, 0.5, 1.0],
-                      ),
-                      image: DecorationImage(
-                        image: AssetImage(_backgroundImages[_currentImageIndex]),
-                        fit: BoxFit.cover,
-                        opacity: 0.3,
-                        colorFilter: ColorFilter.mode(
-                          Colors.black.withOpacity(0.2),
-                          BlendMode.softLight,
-                        ),
-                      ),
-                    ),
-                  );
-                } catch (e, stackTrace) {
-                  debugPrint('Error rendering background: $e');
-                  debugPrint('Stack trace: $stackTrace');
-                  return Container(color: Colors.black);  // Fallback arka plan
-                }
+            blendMode: BlendMode.dstIn,
+            child: AnimatedSwitcher(
+              duration: const Duration(milliseconds: 3000),
+              transitionBuilder: (Widget child, Animation<double> animation) {
+                return FadeTransition(
+                  opacity: CurvedAnimation(
+                    parent: animation,
+                    curve: Curves.easeInOut,
+                  ),
+                  child: child,
+                );
               },
+              child: Container(
+                key: ValueKey<int>(_currentImageIndex),
+                decoration: BoxDecoration(
+                  image: DecorationImage(
+                    image: AssetImage(_backgroundImages[_currentImageIndex]),
+                    fit: BoxFit.cover,
+                    opacity: 0.5,
+                    colorFilter: ColorFilter.mode(
+                      Colors.black.withOpacity(0.25),
+                      BlendMode.softLight,
+                    ),
+                  ),
+                ),
+              ),
             ),
           ),
         ),
