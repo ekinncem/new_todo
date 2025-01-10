@@ -336,9 +336,18 @@ class _HomeScreenState extends State<HomeScreen> with SingleTickerProviderStateM
                   color: Colors.white.withOpacity(0.1),
                 ),
               ),
+              gradient: LinearGradient(
+                begin: Alignment.topCenter,
+                end: Alignment.bottomCenter,
+                colors: [
+                  Colors.transparent,
+                  Colors.black.withOpacity(0.5),
+                ],
+              ),
             ),
             child: BottomNavigationBar(
-              backgroundColor: Theme.of(context).scaffoldBackgroundColor,
+              backgroundColor: Colors.transparent,
+              elevation: 0,
               items: const [
                 BottomNavigationBarItem(
                   icon: Icon(Icons.home_outlined),
