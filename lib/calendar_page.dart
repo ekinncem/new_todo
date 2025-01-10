@@ -36,7 +36,7 @@ class _CalendarPageState extends State<CalendarPage> {
   }
 
   void _startImageTimer() {
-    _imageTimer = Timer.periodic(const Duration(seconds: 8), (timer) {
+    _imageTimer = Timer.periodic(const Duration(seconds: 6), (timer) {
       setState(() {
         _currentImageIndex = (_currentImageIndex + 1) % _backgroundImages.length;
       });
@@ -98,12 +98,38 @@ class _CalendarPageState extends State<CalendarPage> {
       children: [
         // Arka plan resmi (en altta)
         Positioned.fill(
-          child: Container(
-            decoration: BoxDecoration(
-              image: DecorationImage(
-                image: AssetImage(_backgroundImages[_currentImageIndex]),
-                fit: BoxFit.cover,
-                opacity: 0.3,
+          child: AnimatedSwitcher(
+            duration: const Duration(milliseconds: 3000),
+            transitionBuilder: (Widget child, Animation<double> animation) {
+              return FadeTransition(
+                opacity: CurvedAnimation(
+                  parent: animation,
+                  curve: Curves.easeInOut,
+                ),
+                child: child,
+              );
+            },
+            child: Container(
+              key: ValueKey<int>(_currentImageIndex),
+              decoration: BoxDecoration(
+                gradient: LinearGradient(
+                  begin: Alignment.topCenter,
+                  end: Alignment.bottomCenter,
+                  colors: [
+                    Colors.black.withOpacity(0.4),
+                    Colors.black.withOpacity(0.1),
+                    Colors.black.withOpacity(0.4),
+                  ],
+                ),
+                image: DecorationImage(
+                  image: AssetImage(_backgroundImages[_currentImageIndex]),
+                  fit: BoxFit.cover,
+                  opacity: 0.3,
+                  colorFilter: ColorFilter.mode(
+                    Colors.black.withOpacity(0.2),
+                    BlendMode.softLight,
+                  ),
+                ),
               ),
             ),
           ),
