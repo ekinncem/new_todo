@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'dart:ui';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:todo_app/models/app_data.dart';
@@ -59,11 +60,19 @@ class _HomeScreenState extends State<HomeScreen> with SingleTickerProviderStateM
   }
 
   void _startImageTimer() {
+    _imageTimer?.cancel();
     _imageTimer = Timer.periodic(const Duration(seconds: 6), (timer) {
-      if (mounted) {
+      if (!mounted) {
+        timer.cancel();
+        return;
+      }
+      try {
         setState(() {
           _currentImageIndex = (_currentImageIndex + 1) % _backgroundImages.length;
         });
+      } catch (e) {
+        debugPrint('Timer error: $e');
+        timer.cancel();
       }
     });
   }
@@ -116,13 +125,8 @@ class _HomeScreenState extends State<HomeScreen> with SingleTickerProviderStateM
 
   @override
   void dispose() {
-    try {
-      _imageTimer?.cancel();
-      _fabAnimationController?.dispose();
-    } catch (e, stackTrace) {
-      debugPrint('Error in dispose: $e');
-      debugPrint('Stack trace: $stackTrace');
-    }
+    _imageTimer?.cancel();
+    _fabAnimationController?.dispose();
     super.dispose();
   }
 
@@ -277,37 +281,26 @@ class _HomeScreenState extends State<HomeScreen> with SingleTickerProviderStateM
       children: [
         // Arka plan resmi
         SizedBox.expand(
-          child: RepaintBoundary(
-            child: ShaderMask(
-              shaderCallback: (Rect bounds) {
-                return LinearGradient(
-                  begin: Alignment.topCenter,
-                  end: Alignment.bottomCenter,
-                  colors: [
-                    Colors.transparent,
-                    Colors.black.withOpacity(0.85),
-                    Colors.black,
-                  ],
-                  stops: const [0.0, 0.3, 0.7],
-                ).createShader(bounds);
-              },
-              blendMode: BlendMode.dstIn,
-              child: AnimatedSwitcher(
-                duration: const Duration(milliseconds: 3000),
-                child: Container(
-                  key: ValueKey<int>(_currentImageIndex),
-                  decoration: BoxDecoration(
-                    image: DecorationImage(
-                      image: AssetImage(_backgroundImages[_currentImageIndex]),
-                      fit: BoxFit.cover,
-                      opacity: 0.25,
-                      colorFilter: ColorFilter.mode(
-                        Colors.black.withOpacity(0.25),
-                        BlendMode.softLight,
-                      ),
-                    ),
-                  ),
+          child: Container(
+            decoration: BoxDecoration(
+              image: DecorationImage(
+                image: AssetImage(_backgroundImages[_currentImageIndex]),
+                fit: BoxFit.cover,
+                opacity: 0.25,
+                colorFilter: ColorFilter.mode(
+                  Colors.black.withOpacity(0.25),
+                  BlendMode.softLight,
                 ),
+              ),
+              gradient: LinearGradient(
+                begin: Alignment.topCenter,
+                end: Alignment.bottomCenter,
+                colors: [
+                  Colors.transparent,
+                  Colors.black.withOpacity(0.85),
+                  Colors.black,
+                ],
+                stops: const [0.0, 0.3, 0.7],
               ),
             ),
           ),
@@ -376,67 +369,40 @@ class _HomeScreenState extends State<HomeScreen> with SingleTickerProviderStateM
           ),
           floatingActionButton: _buildFAB(),
           bottomNavigationBar: Container(
+            margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 20),
             decoration: BoxDecoration(
-              gradient: LinearGradient(
-                begin: Alignment.topCenter,
-                end: Alignment.bottomCenter,
-                colors: [
-                  Colors.transparent,
-                  Colors.black.withOpacity(0.2),
-                  Colors.black.withOpacity(0.5),
-                ],
-                stops: const [0.0, 0.2, 1.0],
+              color: Colors.black.withOpacity(0.2),
+              borderRadius: BorderRadius.circular(24),
+              border: Border.all(
+                color: Colors.white.withOpacity(0.08),
+                width: 0.5,
               ),
             ),
-            child: Container(
-              margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 20),
-              padding: const EdgeInsets.only(top: 12),
-              decoration: BoxDecoration(
-                color: Colors.white.withOpacity(0.05),
-                borderRadius: BorderRadius.circular(24),
-                border: Border.all(
-                  color: Colors.white.withOpacity(0.08),
-                  width: 0.5,
+            child: BottomNavigationBar(
+              backgroundColor: Colors.transparent,
+              elevation: 0,
+              items: const [
+                BottomNavigationBarItem(
+                  icon: Icon(Icons.home_outlined),
+                  activeIcon: Icon(Icons.home),
+                  label: 'Home',
                 ),
-              ),
-              child: BottomNavigationBar(
-                backgroundColor: Colors.transparent,
-                elevation: 0,
-                items: const [
-                  BottomNavigationBarItem(
-                    icon: Padding(
-                      padding: EdgeInsets.only(top: 12, bottom: 8),
-                      child: Icon(Icons.home_outlined, size: 28),
-                    ),
-                    activeIcon: Padding(
-                      padding: EdgeInsets.only(top: 12, bottom: 8),
-                      child: Icon(Icons.home, size: 28),
-                    ),
-                    label: 'Home',
-                  ),
-                  BottomNavigationBarItem(
-                    icon: Padding(
-                      padding: EdgeInsets.only(top: 12, bottom: 8),
-                      child: Icon(Icons.calendar_today_outlined, size: 28),
-                    ),
-                    activeIcon: Padding(
-                      padding: EdgeInsets.only(top: 12, bottom: 8),
-                      child: Icon(Icons.calendar_today, size: 28),
-                    ),
-                    label: 'Calendar',
-                  ),
-                ],
-                currentIndex: _selectedIndex,
-                selectedItemColor: Colors.white,
-                unselectedItemColor: Colors.white54,
-                onTap: (index) {
+                BottomNavigationBarItem(
+                  icon: Icon(Icons.calendar_today_outlined),
+                  activeIcon: Icon(Icons.calendar_today),
+                  label: 'Calendar',
+                ),
+              ],
+              currentIndex: _selectedIndex,
+              selectedItemColor: Colors.white,
+              unselectedItemColor: Colors.white54,
+              onTap: (index) {
+                if (mounted) {
                   setState(() {
                     _selectedIndex = index;
                   });
-                },
-                selectedLabelStyle: const TextStyle(height: 0.5),
-                unselectedLabelStyle: const TextStyle(height: 0.5),
-              ),
+                }
+              },
             ),
           ),
         ),
