@@ -98,50 +98,12 @@ class _CalendarPageState extends State<CalendarPage> {
       children: [
         // Arka plan resmi (en altta)
         Positioned.fill(
-          child: ShaderMask(
-            shaderCallback: (Rect bounds) {
-              return LinearGradient(
-                begin: Alignment.topCenter,
-                end: Alignment.bottomCenter,
-                colors: [
-                  Colors.transparent,
-                  Colors.black.withOpacity(0.95),
-                  Colors.black,
-                  Colors.black,
-                ],
-                stops: const [0.0, 0.2, 0.4, 0.6],
-              ).createShader(bounds);
-            },
-            blendMode: BlendMode.dstIn,
-            child: AnimatedSwitcher(
-              duration: const Duration(milliseconds: 1500),
-              transitionBuilder: (Widget child, Animation<double> animation) {
-                return FadeTransition(
-                  opacity: Tween<double>(
-                    begin: 0.0,
-                    end: 1.0,
-                  ).animate(
-                    CurvedAnimation(
-                      parent: animation,
-                      curve: Curves.easeInOut,
-                    ),
-                  ),
-                  child: child,
-                );
-              },
-              child: Container(
-                key: ValueKey<int>(_currentImageIndex),
-                decoration: BoxDecoration(
-                  image: DecorationImage(
-                    image: AssetImage(_backgroundImages[_currentImageIndex]),
-                    fit: BoxFit.cover,
-                    opacity: 0.5,
-                    colorFilter: ColorFilter.mode(
-                      Colors.black.withOpacity(0.25),
-                      BlendMode.darken,
-                    ),
-                  ),
-                ),
+          child: Container(
+            decoration: BoxDecoration(
+              image: DecorationImage(
+                image: AssetImage(_backgroundImages[_currentImageIndex]),
+                fit: BoxFit.cover,
+                opacity: 0.3,
               ),
             ),
           ),
@@ -152,7 +114,7 @@ class _CalendarPageState extends State<CalendarPage> {
             // Takvim
             Container(
               decoration: BoxDecoration(
-                color: const Color(0xFF1E1F25),
+                color: const Color(0xFF1E1F25).withOpacity(0.85),
                 borderRadius: BorderRadius.circular(16),
               ),
               margin: const EdgeInsets.all(8),
