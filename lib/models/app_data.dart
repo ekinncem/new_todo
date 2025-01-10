@@ -171,4 +171,34 @@ class AppData with ChangeNotifier {
       notifyListeners();
     }
   }
+
+  Future<void> deleteTodo(int id) async {
+    try {
+      await _db?.delete(
+        'todos',
+        where: 'id = ?',
+        whereArgs: [id],
+      );
+      _todos.removeWhere((todo) => todo['id'] == id);
+      notifyListeners();
+    } catch (e, stackTrace) {
+      debugPrint('Todo silme hatası: $e');
+      debugPrint('Stack trace: $stackTrace');
+    }
+  }
+
+  Future<void> deleteNote(int id) async {
+    try {
+      await _db?.delete(
+        'notes',
+        where: 'id = ?',
+        whereArgs: [id],
+      );
+      _notes.removeWhere((note) => note['id'] == id);
+      notifyListeners();
+    } catch (e, stackTrace) {
+      debugPrint('Not silme hatası: $e');
+      debugPrint('Stack trace: $stackTrace');
+    }
+  }
 }

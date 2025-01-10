@@ -341,8 +341,11 @@ class _CalendarPageState extends State<CalendarPage> {
                                 fontFamily: 'Poppins',
                               ),
                             ),
-                            trailing: event['type'] == 'todo'
-                                ? Transform.scale(
+                            trailing: Row(
+                              mainAxisSize: MainAxisSize.min,
+                              children: [
+                                if (event['type'] == 'todo')
+                                  Transform.scale(
                                     scale: 1.2,
                                     child: Checkbox(
                                       value: event['completed'] ?? false,
@@ -361,8 +364,46 @@ class _CalendarPageState extends State<CalendarPage> {
                                         }
                                       },
                                     ),
-                                  )
-                                : null,
+                                  ),
+                                IconButton(
+                                  icon: const Icon(
+                                    Icons.delete_outline,
+                                    color: Colors.red,
+                                  ),
+                                  onPressed: () {
+                                    showDialog(
+                                      context: context,
+                                      builder: (context) => AlertDialog(
+                                        title: const Text('Delete Event'),
+                                        content: Text(
+                                          'Are you sure you want to delete this ${event['type']}?'
+                                        ),
+                                        actions: [
+                                          TextButton(
+                                            onPressed: () => Navigator.pop(context),
+                                            child: const Text('Cancel'),
+                                          ),
+                                          TextButton(
+                                            onPressed: () {
+                                              if (event['type'] == 'todo') {
+                                                appData.deleteTodo(event['id']);
+                                              } else {
+                                                appData.deleteNote(event['id']);
+                                              }
+                                              Navigator.pop(context);
+                                            },
+                                            child: const Text(
+                                              'Delete',
+                                              style: TextStyle(color: Colors.red),
+                                            ),
+                                          ),
+                                        ],
+                                      ),
+                                    );
+                                  },
+                                ),
+                              ],
+                            ),
                           ),
                         );
                       },

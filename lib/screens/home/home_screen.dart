@@ -172,6 +172,37 @@ class _HomeScreenState extends State<HomeScreen> with SingleTickerProviderStateM
                         return EventCard(
                           event: event,
                           showDate: true,
+                          onDelete: (eventItem) {
+                            showDialog(
+                              context: context,
+                              builder: (context) => AlertDialog(
+                                title: const Text('Delete Event'),
+                                content: Text(
+                                  'Are you sure you want to delete this ${eventItem.type}?'
+                                ),
+                                actions: [
+                                  TextButton(
+                                    onPressed: () => Navigator.pop(context),
+                                    child: const Text('Cancel'),
+                                  ),
+                                  TextButton(
+                                    onPressed: () {
+                                      if (eventItem.type == 'todo') {
+                                        appData.deleteTodo(eventItem.id);
+                                      } else {
+                                        appData.deleteNote(eventItem.id);
+                                      }
+                                      Navigator.pop(context);
+                                    },
+                                    child: const Text(
+                                      'Delete',
+                                      style: TextStyle(color: Colors.red),
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            );
+                          },
                         );
                       },
                     );
@@ -209,6 +240,7 @@ class _HomeScreenState extends State<HomeScreen> with SingleTickerProviderStateM
       final todoDate = todo['date'] as DateTime;
       if (!todoDate.isBefore(now) && !todoDate.isAfter(oneWeekLater)) {
         events.add(EventItem(
+          id: todo['id'],
           title: todo['text'],
           time: todoDate,
           type: 'todo',
@@ -223,6 +255,7 @@ class _HomeScreenState extends State<HomeScreen> with SingleTickerProviderStateM
       final noteDate = note['date'] as DateTime;
       if (!noteDate.isBefore(now) && !noteDate.isAfter(oneWeekLater)) {
         events.add(EventItem(
+          id: note['id'],
           title: note['text'],
           time: noteDate,
           type: 'note',
@@ -423,11 +456,13 @@ class _HomeScreenState extends State<HomeScreen> with SingleTickerProviderStateM
 
 class EventCard extends StatelessWidget {
   final EventItem event;
+  final Function(EventItem) onDelete;
   final bool showDate;
 
   const EventCard({
     Key? key,
     required this.event,
+    required this.onDelete,
     this.showDate = false,
   }) : super(key: key);
 
@@ -512,19 +547,31 @@ class EventCard extends StatelessWidget {
                 ],
               ),
             ),
-            if (event.type == 'todo')
-              Container(
-                decoration: BoxDecoration(
-                  shape: BoxShape.circle,
-                  border: Border.all(color: Colors.white24),
+            Row(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                if (event.type == 'todo')
+                  Container(
+                    decoration: BoxDecoration(
+                      shape: BoxShape.circle,
+                      border: Border.all(color: Colors.white24),
+                    ),
+                    child: IconButton(
+                      icon: const Icon(Icons.check, color: Colors.white70),
+                      onPressed: () {
+                        // Todo tamamlama işlemi
+                      },
+                    ),
+                  ),
+                IconButton(
+                  icon: const Icon(
+                    Icons.delete_outline,
+                    color: Colors.red,
+                  ),
+                  onPressed: () => onDelete(event),
                 ),
-                child: IconButton(
-                  icon: const Icon(Icons.check, color: Colors.white70),
-                  onPressed: () {
-                    // Todo tamamlama işlemi
-                  },
-                ),
-              ),
+              ],
+            ),
           ],
         ),
       ),
@@ -533,6 +580,7 @@ class EventCard extends StatelessWidget {
 }
 
 class EventItem {
+  final int id;
   final String title;
   final DateTime time;
   final String type;
@@ -540,6 +588,7 @@ class EventItem {
   final List<String> tags;
 
   EventItem({
+    required this.id,
     required this.title,
     required this.time,
     required this.type,
