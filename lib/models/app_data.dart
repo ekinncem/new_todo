@@ -2,7 +2,7 @@ import 'package:flutter/foundation.dart';
 import 'package:sqflite/sqflite.dart';
 import 'dart:io';
 import 'package:path/path.dart';
-import 'package:flutter_local_notifications/flutter_local_notifications.dart';
+import 'package:todo_app/services/notification_service.dart';
 
 class AppData with ChangeNotifier {
   Database? _db;
