@@ -7,7 +7,6 @@ import 'package:todo_app/widgets/add_item_dialog.dart';
 import 'package:todo_app/calendar_page.dart';
 import 'package:todo_app/models/user_data.dart';
 import 'package:todo_app/widgets/edit_profile_dialog.dart';
-import 'package:todo_app/widgets/notification_icon.dart';
 
 class HomeScreen extends StatefulWidget {
   const HomeScreen({Key? key}) : super(key: key);
@@ -322,7 +321,6 @@ class _HomeScreenState extends State<HomeScreen> with SingleTickerProviderStateM
             elevation: 0,
             automaticallyImplyLeading: false,
             actions: [
-              const NotificationIcon(),
               Padding(
                 padding: const EdgeInsets.symmetric(horizontal: 16),
                 child: GestureDetector(

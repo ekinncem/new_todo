@@ -7,13 +7,9 @@ import 'package:todo_app/models/app_data.dart';
 import 'package:todo_app/models/user_data.dart';
 import 'package:todo_app/screens/home/home_screen.dart';
 import 'package:todo_app/widgets/error_boundary.dart';
-import 'package:todo_app/services/notification_service.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
-  
-  // Bildirimleri başlat
-  await NotificationService.instance.init();
   
   // SQLite başlatma
   if (Platform.isWindows || Platform.isLinux) {

@@ -2,7 +2,6 @@ import 'package:flutter/foundation.dart';
 import 'package:sqflite/sqflite.dart';
 import 'dart:io';
 import 'package:path/path.dart';
-import 'package:todo_app/services/notification_service.dart';
 
 class AppData with ChangeNotifier {
   Database? _db;
@@ -101,15 +100,6 @@ class AppData with ChangeNotifier {
             'completed': false,
             'priority': priority,
           });
-          
-          // Bildirim planla
-          await NotificationService.instance.scheduleEventNotification(
-            id: id,
-            title: text,
-            eventDate: date,
-            type: 'görev',
-          );
-          
           notifyListeners();
         }
       });
