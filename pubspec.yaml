@@ -17,6 +17,8 @@ dependencies:
   sqflite_common_ffi: ^2.3.2+1
   path_provider: ^2.1.2
   path: ^1.8.3
+  image_picker: ^1.1.2
+  font_awesome_flutter: ^10.1.0
   # Diğer bağımlılıklar buraya eklenebilir
   # Örneğin:
   # shared_preferences: ^2.0.0

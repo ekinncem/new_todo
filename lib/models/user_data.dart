@@ -11,6 +11,7 @@ class UserData with ChangeNotifier {
   String? _email;
   String? _phone;
   String? _photoUrl;
+  IconData? _icon;
 
   String? get name => _name;
   String? get surname => _surname;
@@ -18,6 +19,7 @@ class UserData with ChangeNotifier {
   String? get email => _email;
   String? get phone => _phone;
   String? get photoUrl => _photoUrl;
+  IconData? get icon => _icon;
 
   Future<void> init() async {
     if (_db != null) return;
@@ -37,7 +39,8 @@ class UserData with ChangeNotifier {
             profession TEXT,
             email TEXT,
             phone TEXT,
-            photo_url TEXT
+            photo_url TEXT,
+            icon TEXT
           )
         ''');
       },
@@ -56,6 +59,13 @@ class UserData with ChangeNotifier {
       _email = profile['email'];
       _phone = profile['phone'];
       _photoUrl = profile['photo_url'];
+      
+      if (profile['icon'] != null) {
+        _icon = IconData(int.parse(profile['icon']), fontFamily: 'MaterialIcons');
+      } else {
+        _icon = Icons.person;
+      }
+      
       notifyListeners();
     }
   }
@@ -67,6 +77,7 @@ class UserData with ChangeNotifier {
     String? email,
     String? phone,
     String? photoUrl,
+    IconData? icon,
   }) async {
     final profile = {
       'name': name ?? _name,
@@ -75,6 +86,7 @@ class UserData with ChangeNotifier {
       'email': email ?? _email,
       'phone': phone ?? _phone,
       'photo_url': photoUrl ?? _photoUrl,
+      'icon': icon?.codePoint.toString() ?? Icons.person.codePoint.toString(),
     };
 
     final profiles = await _db!.query('user_profile');
@@ -95,6 +107,7 @@ class UserData with ChangeNotifier {
     _email = email ?? _email;
     _phone = phone ?? _phone;
     _photoUrl = photoUrl ?? _photoUrl;
+    _icon = icon ?? Icons.person;
     notifyListeners();
   }
 } 

@@ -8,6 +8,7 @@ import 'package:todo_app/widgets/add_item_dialog.dart';
 import 'package:todo_app/calendar_page.dart';
 import 'package:todo_app/models/user_data.dart';
 import 'package:todo_app/widgets/edit_profile_dialog.dart';
+import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 
 class HomeScreen extends StatefulWidget {
   const HomeScreen({Key? key}) : super(key: key);
@@ -344,17 +345,23 @@ class _HomeScreenState extends State<HomeScreen> with SingleTickerProviderStateM
                                   fit: BoxFit.cover,
                                 ),
                               )
-                            : Text(
-                                userData.name?.isNotEmpty == true
-                                    ? userData.name![0].toUpperCase()
-                                    : '?',
-                                style: const TextStyle(
-                                  color: Colors.white,
-                                  fontSize: 20,
-                                  fontFamily: 'Poppins',
-                                  fontWeight: FontWeight.bold,
-                                ),
-                              ),
+                            : userData.icon != null
+                                ? FaIcon(
+                                    userData.icon,
+                                    size: 40,
+                                    color: Colors.grey[800],
+                                  )
+                                : Text(
+                                    userData.name?.isNotEmpty == true
+                                        ? userData.name![0].toUpperCase()
+                                        : '?',
+                                    style: const TextStyle(
+                                      color: Colors.white,
+                                      fontSize: 20,
+                                      fontFamily: 'Poppins',
+                                      fontWeight: FontWeight.bold,
+                                    ),
+                                  ),
                       ),
                     );
                   },

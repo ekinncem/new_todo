@@ -1,7 +1,9 @@
+import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:todo_app/models/user_data.dart';
-import 'package:todo_app/widgets/custom_text_field.dart';
+import 'package:image_picker/image_picker.dart';
+import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 
 class EditProfileDialog extends StatefulWidget {
   const EditProfileDialog({Key? key}) : super(key: key);
@@ -17,6 +19,9 @@ class _EditProfileDialogState extends State<EditProfileDialog> {
   final _emailController = TextEditingController();
   final _phoneController = TextEditingController();
   String? _selectedPhotoUrl;
+  IconData? _selectedIcon;
+
+  final ImagePicker _picker = ImagePicker();
 
   @override
   void initState() {
@@ -28,6 +33,65 @@ class _EditProfileDialogState extends State<EditProfileDialog> {
     _emailController.text = userData.email ?? '';
     _phoneController.text = userData.phone ?? '';
     _selectedPhotoUrl = userData.photoUrl;
+  }
+
+  Future<void> _pickImage() async {
+    final pickedFile = await _picker.pickImage(source: ImageSource.gallery);
+    if (pickedFile != null) {
+      setState(() {
+        _selectedPhotoUrl = pickedFile.path;
+      });
+    }
+  }
+
+  void _showIconPicker() {
+    showDialog(
+      context: context,
+      builder: (context) {
+        return AlertDialog(
+          title: const Text('Select an Icon'),
+          content: SingleChildScrollView(
+            child: Column(
+              children: [
+                Wrap(
+                  spacing: 8,
+                  runSpacing: 8,
+                  children: [
+                    IconButton(
+                      icon: const FaIcon(FontAwesomeIcons.user),
+                      onPressed: () {
+                        setState(() {
+                          _selectedIcon = FontAwesomeIcons.user;
+                        });
+                        Navigator.pop(context);
+                      },
+                    ),
+                    IconButton(
+                      icon: const FaIcon(FontAwesomeIcons.home),
+                      onPressed: () {
+                        setState(() {
+                          _selectedIcon = FontAwesomeIcons.home;
+                        });
+                        Navigator.pop(context);
+                      },
+                    ),
+                    IconButton(
+                      icon: const FaIcon(FontAwesomeIcons.cog),
+                      onPressed: () {
+                        setState(() {
+                          _selectedIcon = FontAwesomeIcons.cog;
+                        });
+                        Navigator.pop(context);
+                      },
+                    ),
+                  ],
+                ),
+              ],
+            ),
+          ),
+        );
+      },
+    );
   }
 
   @override
@@ -52,27 +116,36 @@ class _EditProfileDialogState extends State<EditProfileDialog> {
               ),
               const SizedBox(height: 24),
               GestureDetector(
-                onTap: () {
-                  // Resim seçme işlemi
-                },
+                onTap: _pickImage,
                 child: CircleAvatar(
                   radius: 50,
                   backgroundColor: Colors.grey[200],
                   child: _selectedPhotoUrl != null
                       ? ClipOval(
-                          child: Image.network(
-                            _selectedPhotoUrl!,
+                          child: Image.file(
+                            File(_selectedPhotoUrl!),
                             width: 100,
                             height: 100,
                             fit: BoxFit.cover,
                           ),
                         )
-                      : Icon(
-                          Icons.camera_alt,
-                          size: 40,
-                          color: Colors.grey[800],
-                        ),
+                      : _selectedIcon != null
+                          ? FaIcon(
+                              _selectedIcon,
+                              size: 40,
+                              color: Colors.grey[800],
+                            )
+                          : Icon(
+                              Icons.camera_alt,
+                              size: 40,
+                              color: Colors.grey[800],
+                            ),
                 ),
+              ),
+              const SizedBox(height: 24),
+              TextButton(
+                onPressed: _showIconPicker,
+                child: const Text('Select Icon'),
               ),
               const SizedBox(height: 24),
               TextField(
@@ -134,6 +207,7 @@ class _EditProfileDialogState extends State<EditProfileDialog> {
                             email: _emailController.text,
                             phone: _phoneController.text,
                             photoUrl: _selectedPhotoUrl,
+                            icon: _selectedIcon,
                           );
                       Navigator.pop(context);
                     },
