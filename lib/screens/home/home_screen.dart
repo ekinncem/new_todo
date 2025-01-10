@@ -339,23 +339,16 @@ class _HomeScreenState extends State<HomeScreen> with SingleTickerProviderStateM
               ),
             ],
           ),
-          body: _selectedIndex == 0 ? _buildHomeContent() : const CalendarPage(),
+          body: Padding(
+            padding: const EdgeInsets.only(bottom: 70),
+            child: _selectedIndex == 0 ? _buildHomeContent() : const CalendarPage(),
+          ),
           floatingActionButton: _buildFAB(),
-          bottomNavigationBar: Container(
-            decoration: BoxDecoration(
-              gradient: LinearGradient(
-                begin: Alignment.topCenter,
-                end: Alignment.bottomCenter,
-                colors: [
-                  Colors.transparent,
-                  Colors.black.withOpacity(0.2),
-                  Colors.black.withOpacity(0.5),
-                ],
-                stops: const [0.0, 0.2, 1.0],
-              ),
-            ),
+          bottomNavigationBar: Padding(
+            padding: const EdgeInsets.only(bottom: 16),
             child: Container(
-              margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+              margin: const EdgeInsets.symmetric(horizontal: 16),
+              height: 65,
               decoration: BoxDecoration(
                 color: Colors.white.withOpacity(0.05),
                 borderRadius: BorderRadius.circular(24),
@@ -363,25 +356,49 @@ class _HomeScreenState extends State<HomeScreen> with SingleTickerProviderStateM
                   color: Colors.white.withOpacity(0.08),
                   width: 0.5,
                 ),
+                gradient: LinearGradient(
+                  begin: Alignment.topCenter,
+                  end: Alignment.bottomCenter,
+                  colors: [
+                    Colors.transparent,
+                    Colors.black.withOpacity(0.2),
+                    Colors.black.withOpacity(0.5),
+                  ],
+                  stops: const [0.0, 0.2, 1.0],
+                ),
               ),
               child: BottomNavigationBar(
                 backgroundColor: Colors.transparent,
                 elevation: 0,
                 items: const [
                   BottomNavigationBarItem(
-                    icon: Icon(Icons.home_outlined),
-                    activeIcon: Icon(Icons.home),
+                    icon: Padding(
+                      padding: EdgeInsets.only(bottom: 4),
+                      child: Icon(Icons.home_outlined),
+                    ),
+                    activeIcon: Padding(
+                      padding: EdgeInsets.only(bottom: 4),
+                      child: Icon(Icons.home),
+                    ),
                     label: 'Home',
                   ),
                   BottomNavigationBarItem(
-                    icon: Icon(Icons.calendar_today_outlined),
-                    activeIcon: Icon(Icons.calendar_today),
+                    icon: Padding(
+                      padding: EdgeInsets.only(bottom: 4),
+                      child: Icon(Icons.calendar_today_outlined),
+                    ),
+                    activeIcon: Padding(
+                      padding: EdgeInsets.only(bottom: 4),
+                      child: Icon(Icons.calendar_today),
+                    ),
                     label: 'Calendar',
                   ),
                 ],
                 currentIndex: _selectedIndex,
                 selectedItemColor: Colors.white,
                 unselectedItemColor: Colors.white54,
+                selectedLabelStyle: const TextStyle(fontSize: 12),
+                unselectedLabelStyle: const TextStyle(fontSize: 12),
                 onTap: (index) {
                   setState(() {
                     _selectedIndex = index;
