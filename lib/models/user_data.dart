@@ -1,10 +1,21 @@
 import 'package:flutter/material.dart';
 
 class UserData extends ChangeNotifier {
-  String? name;
+  String? _name;
+  String? _photoUrl;
+
+  String? get name => _name;
+  String? get photoUrl => _photoUrl;
+
+  Future<void> init() async {
+    // Başlangıç değerlerini yükle
+    _name = '';
+    _photoUrl = null;
+    notifyListeners();
+  }
+
   String? surname;
   String? profession;
-  String? photoUrl;
 
   void updateUserInfo({
     String? name,
@@ -12,10 +23,10 @@ class UserData extends ChangeNotifier {
     String? profession,
     String? photoUrl,
   }) {
-    this.name = name ?? this.name;
+    this._name = name ?? this._name;
     this.surname = surname ?? this.surname;
     this.profession = profession ?? this.profession;
-    this.photoUrl = photoUrl ?? this.photoUrl;
+    this._photoUrl = photoUrl ?? this._photoUrl;
     notifyListeners();
   }
 

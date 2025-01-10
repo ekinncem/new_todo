@@ -135,10 +135,11 @@ class _HomeScreenState extends State<HomeScreen> with SingleTickerProviderStateM
           child: Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              const Text(
+              Text(
                 'Upcoming Events',
-                style: TextStyle(
+                style: const TextStyle(
                   fontSize: 24,
+                  fontFamily: 'Poppins',
                   fontWeight: FontWeight.bold,
                   color: Colors.white,
                 ),
@@ -241,43 +242,45 @@ class _HomeScreenState extends State<HomeScreen> with SingleTickerProviderStateM
   Widget build(BuildContext context) {
     return Stack(
       children: [
-        // Arka plan resmi (en altta)
-        Positioned.fill(
-          child: ShaderMask(
-            shaderCallback: (Rect bounds) {
-              return LinearGradient(
-                begin: Alignment.topCenter,
-                end: Alignment.bottomCenter,
-                colors: [
-                  Colors.transparent,
-                  Colors.black.withOpacity(0.85),
-                  Colors.black,
-                ],
-                stops: const [0.0, 0.3, 0.7],
-              ).createShader(bounds);
-            },
-            blendMode: BlendMode.dstIn,
-            child: AnimatedSwitcher(
-              duration: const Duration(milliseconds: 3000),
-              transitionBuilder: (Widget child, Animation<double> animation) {
-                return FadeTransition(
-                  opacity: CurvedAnimation(
-                    parent: animation,
-                    curve: Curves.easeInOut,
-                  ),
-                  child: child,
-                );
+        // Arka plan resmi
+        RepaintBoundary( // Gereksiz yeniden çizimleri önle
+          child: Positioned.fill(
+            child: ShaderMask(
+              shaderCallback: (Rect bounds) {
+                return LinearGradient(
+                  begin: Alignment.topCenter,
+                  end: Alignment.bottomCenter,
+                  colors: [
+                    Colors.transparent,
+                    Colors.black.withOpacity(0.85),
+                    Colors.black,
+                  ],
+                  stops: const [0.0, 0.3, 0.7],
+                ).createShader(bounds);
               },
-              child: Container(
-                key: ValueKey<int>(_currentImageIndex),
-                decoration: BoxDecoration(
-                  image: DecorationImage(
-                    image: AssetImage(_backgroundImages[_currentImageIndex]),
-                    fit: BoxFit.cover,
-                    opacity: 0.25,
-                    colorFilter: ColorFilter.mode(
-                      Colors.black.withOpacity(0.25),
-                      BlendMode.softLight,
+              blendMode: BlendMode.dstIn,
+              child: AnimatedSwitcher(
+                duration: const Duration(milliseconds: 3000),
+                transitionBuilder: (Widget child, Animation<double> animation) {
+                  return FadeTransition(
+                    opacity: CurvedAnimation(
+                      parent: animation,
+                      curve: Curves.easeInOut,
+                    ),
+                    child: child,
+                  );
+                },
+                child: Container(
+                  key: ValueKey<int>(_currentImageIndex),
+                  decoration: BoxDecoration(
+                    image: DecorationImage(
+                      image: AssetImage(_backgroundImages[_currentImageIndex]),
+                      fit: BoxFit.cover,
+                      opacity: 0.25,
+                      colorFilter: ColorFilter.mode(
+                        Colors.black.withOpacity(0.25),
+                        BlendMode.softLight,
+                      ),
                     ),
                   ),
                 ),
@@ -285,6 +288,7 @@ class _HomeScreenState extends State<HomeScreen> with SingleTickerProviderStateM
             ),
           ),
         ),
+        
         // Ana içerik
         Scaffold(
           backgroundColor: Colors.transparent,  // Scaffold arka planı şeffaf
@@ -339,7 +343,13 @@ class _HomeScreenState extends State<HomeScreen> with SingleTickerProviderStateM
               ),
             ],
           ),
-          body: _selectedIndex == 0 ? _buildHomeContent() : const CalendarPage(),
+          body: IndexedStack( // Sayfalar arası geçişi optimize et
+            index: _selectedIndex,
+            children: [
+              _buildHomeContent(),
+              const CalendarPage(),
+            ],
+          ),
           floatingActionButton: _buildFAB(),
           bottomNavigationBar: Container(
             decoration: BoxDecoration(
@@ -457,6 +467,8 @@ class EventCard extends StatelessWidget {
                     style: TextStyle(
                       color: Colors.white.withOpacity(0.6),
                       fontSize: 14,
+                      fontFamily: 'Poppins',
+                      fontWeight: FontWeight.w500,
                     ),
                   ),
                   const SizedBox(height: 8),
@@ -464,6 +476,7 @@ class EventCard extends StatelessWidget {
                     event.title,
                     style: const TextStyle(
                       fontSize: 18,
+                      fontFamily: 'Poppins',
                       fontWeight: FontWeight.w600,
                       color: Colors.white,
                     ),
@@ -489,7 +502,8 @@ class EventCard extends StatelessWidget {
                           style: TextStyle(
                             color: _getPriorityColor(event.priority ?? 'normal'),
                             fontSize: 12,
-                            fontWeight: FontWeight.w500,
+                            fontFamily: 'Poppins',
+                            fontWeight: FontWeight.w600,
                           ),
                         ),
                       ),

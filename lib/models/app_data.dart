@@ -1,22 +1,112 @@
 import 'package:flutter/foundation.dart';
+import 'package:sqflite/sqflite.dart';
+import 'dart:io';
+import 'package:path/path.dart';
 
-class AppData extends ChangeNotifier {
-  final List<Map<String, dynamic>> _todos = [];
-  final List<Map<String, dynamic>> _notes = [];
+class AppData with ChangeNotifier {
+  Database? _db;
+  List<Map<String, dynamic>> _todos = [];
+  List<Map<String, dynamic>> _notes = [];
   final Map<DateTime, List<String>> _events = {};
 
   List<Map<String, dynamic>> get todos => _todos;
   List<Map<String, dynamic>> get notes => _notes;
-  Map<DateTime, List<String>> get events => _events;
 
-  void addTodo(String text, {required DateTime date, String priority = 'normal'}) {
-    _todos.add({
-      'text': text,
-      'completed': false,
-      'date': date,
-      'priority': priority,
-    });
-    notifyListeners();
+  Future<void> init() async {
+    if (_db != null) return;
+
+    final dbPath = await getDatabasesPath();
+    final path = join(dbPath, 'todo_app.db');
+
+    _db = await openDatabase(
+      path,
+      version: 1,
+      onCreate: (db, version) async {
+        await db.execute('''
+          CREATE TABLE todos(
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            text TEXT,
+            date INTEGER,
+            completed INTEGER DEFAULT 0,
+            priority TEXT DEFAULT 'normal'
+          )
+        ''');
+        await db.execute('''
+          CREATE TABLE notes(
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            text TEXT,
+            date INTEGER,
+            priority TEXT DEFAULT 'normal'
+          )
+        ''');
+      },
+    );
+
+    await _loadData();
+  }
+
+  Future<void> _loadData() async {
+    try {
+      if (_db == null) {
+        debugPrint('Veritabanı başlatılmamış!');
+        return;
+      }
+
+      debugPrint('Veritabanından veriler yükleniyor...');
+      final List<Map<String, dynamic>> todoList = await _db!.query('todos');
+      final List<Map<String, dynamic>> noteList = await _db!.query('notes');
+      
+      _todos = todoList.map((todo) => {
+        ...todo,
+        'date': DateTime.fromMillisecondsSinceEpoch(todo['date'] as int),
+        'completed': todo['completed'] == 1,
+      }).toList();
+      
+      _notes = noteList.map((note) => {
+        ...note,
+        'date': DateTime.fromMillisecondsSinceEpoch(note['date'] as int),
+      }).toList();
+      
+      debugPrint('Yüklenen todo sayısı: ${_todos.length}');
+      debugPrint('Yüklenen not sayısı: ${_notes.length}');
+      notifyListeners();
+    } catch (e, stackTrace) {
+      debugPrint('Veri yükleme hatası: $e');
+      debugPrint('Stack trace: $stackTrace');
+    }
+  }
+
+  @override
+  void dispose() {
+    _db?.close();
+    super.dispose();
+  }
+
+  Future<void> addTodo(String text, {required DateTime date, String priority = 'normal'}) async {
+    try {
+      await Future.microtask(() async {
+        final id = await _db?.insert('todos', {
+          'text': text,
+          'date': date.millisecondsSinceEpoch,
+          'completed': 0,
+          'priority': priority,
+        });
+        
+        if (id != null) {
+          _todos.add({
+            'id': id,
+            'text': text,
+            'date': date,
+            'completed': false,
+            'priority': priority,
+          });
+          notifyListeners();
+        }
+      });
+    } catch (e, stackTrace) {
+      debugPrint('Todo ekleme hatası: $e');
+      debugPrint('Stack trace: $stackTrace');
+    }
   }
 
   void toggleTodo(int index) {
@@ -33,13 +123,28 @@ class AppData extends ChangeNotifier {
     }
   }
 
-  void addNote(String text, {required DateTime date, String priority = 'normal'}) {
-    _notes.add({
-      'text': text,
-      'date': date,
-      'priority': priority,
-    });
-    notifyListeners();
+  Future<void> addNote(String text, {required DateTime date, String priority = 'normal'}) async {
+    try {
+      debugPrint('Not ekleniyor: $text, tarih: $date');
+      final id = await _db?.insert('notes', {
+        'text': text,
+        'date': date.millisecondsSinceEpoch,
+        'priority': priority,
+      });
+      
+      if (id != null) {
+        _notes.add({
+          'id': id,
+          'text': text,
+          'date': date,
+          'priority': priority,
+        });
+        notifyListeners();
+      }
+    } catch (e, stackTrace) {
+      debugPrint('Not ekleme hatası: $e');
+      debugPrint('Stack trace: $stackTrace');
+    }
   }
 
   void removeNote(int index) {

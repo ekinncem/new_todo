@@ -93,10 +93,18 @@ class _AddItemDialogState extends State<AddItemDialog> {
               ],
             ),
             const SizedBox(height: 24),
-            CustomTextField(
+            TextField(
               controller: _textController,
-              hintText: _selectedType == 'todo' ? 'Enter task...' : 'Enter note...',
-              maxLines: 3,
+              decoration: InputDecoration(
+                hintText: 'Enter text...',
+                border: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(12),
+                ),
+              ),
+              onEditingComplete: () {
+                FocusScope.of(context).unfocus();
+              },
+              textInputAction: TextInputAction.done,
             ),
             const SizedBox(height: 16),
             const Text(

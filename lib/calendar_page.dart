@@ -67,29 +67,37 @@ class _CalendarPageState extends State<CalendarPage> {
   }
 
   List<Map<String, dynamic>> _getEventsForDay(DateTime day, AppData appData) {
-    final List<Map<String, dynamic>> events = [];
+    try {
+      final List<Map<String, dynamic>> events = [];
 
-    // To-do'ları ekle
-    for (var todo in appData.todos) {
-      if (DateFormatter.isSameDay(todo['date'], day)) {
-        events.add({
-          ...todo,
-          'type': 'todo',
-        });
+      // To-do'ları ekle
+      for (var todo in appData.todos) {
+        if (DateFormatter.isSameDay(todo['date'], day)) {
+          debugPrint('Todo bulundu: ${todo['text']}');
+          events.add({
+            ...todo,
+            'type': 'todo',
+          });
+        }
       }
-    }
 
-    // Notları ekle
-    for (var note in appData.notes) {
-      if (DateFormatter.isSameDay(note['date'], day)) {
-        events.add({
-          ...note,
-          'type': 'note',
-        });
+      // Notları ekle
+      for (var note in appData.notes) {
+        if (DateFormatter.isSameDay(note['date'], day)) {
+          debugPrint('Not bulundu: ${note['text']}');
+          events.add({
+            ...note,
+            'type': 'note',
+          });
+        }
       }
-    }
 
-    return events;
+      return events;
+    } catch (e, stackTrace) {
+      debugPrint('Event getirme hatası: $e');
+      debugPrint('Stack trace: $stackTrace');
+      return [];
+    }
   }
 
   @override
@@ -112,10 +120,16 @@ class _CalendarPageState extends State<CalendarPage> {
             selectedDayPredicate: (day) => 
                 _selectedDay != null && isSameDay(_selectedDay!, day),
             onDaySelected: (selectedDay, focusedDay) {
-              setState(() {
-                _selectedDay = selectedDay;
-                _focusedDay = focusedDay;
-              });
+              try {
+                debugPrint('Seçilen tarih: $selectedDay');
+                setState(() {
+                  _selectedDay = selectedDay;
+                  _focusedDay = focusedDay;
+                });
+              } catch (e, stackTrace) {
+                debugPrint('Tarih seçme hatası: $e');
+                debugPrint('Stack trace: $stackTrace');
+              }
             },
             onFormatChanged: (format) {
               setState(() {
@@ -143,60 +157,43 @@ class _CalendarPageState extends State<CalendarPage> {
                 fontWeight: FontWeight.w500,
               ),
               
-              selectedDecoration: BoxDecoration(
-                gradient: const LinearGradient(
-                  begin: Alignment.topLeft,
-                  end: Alignment.bottomRight,
-                  colors: [Color(0xFF8E2DE2), Color(0xFF4A00E0)],
-                ),
-                borderRadius: BorderRadius.circular(12),
-                boxShadow: [
-                  BoxShadow(
-                    color: const Color(0xFF8E2DE2).withOpacity(0.3),
-                    blurRadius: 8,
-                    offset: const Offset(0, 4),
-                  ),
-                ],
+              selectedDecoration: const BoxDecoration(
+                color: Color(0xFF8E2DE2),
+                shape: BoxShape.circle,
               ),
               selectedTextStyle: const TextStyle(
                 color: Colors.white,
-                fontSize: 18,
+                fontSize: 16,
                 fontFamily: 'Poppins',
-                fontWeight: FontWeight.bold,
+                fontWeight: FontWeight.w600,
               ),
               
               todayDecoration: BoxDecoration(
                 border: Border.all(
                   color: const Color(0xFF8E2DE2),
-                  width: 2,
+                  width: 1.5,
                 ),
-                borderRadius: BorderRadius.circular(12),
+                shape: BoxShape.circle,
               ),
               todayTextStyle: const TextStyle(
-                color: Color(0xFF8E2DE2),
+                color: Colors.white,
                 fontSize: 16,
                 fontFamily: 'Poppins',
-                fontWeight: FontWeight.bold,
+                fontWeight: FontWeight.w500,
               ),
 
-              markerDecoration: BoxDecoration(
-                color: const Color(0xFF8E2DE2),
-                borderRadius: BorderRadius.circular(4),
-                boxShadow: [
-                  BoxShadow(
-                    color: const Color(0xFF8E2DE2).withOpacity(0.3),
-                    blurRadius: 4,
-                    offset: const Offset(0, 2),
-                  ),
-                ],
+              markerDecoration: const BoxDecoration(
+                color: Color(0xFF8E2DE2),
+                shape: BoxShape.circle,
               ),
-              markerSize: 6,
+              markerSize: 4,
               markersMaxCount: 1,
               
               outsideTextStyle: TextStyle(
                 color: Colors.white.withOpacity(0.3),
                 fontSize: 16,
                 fontFamily: 'Poppins',
+                fontWeight: FontWeight.w500,
               ),
             ),
             
@@ -226,6 +223,13 @@ class _CalendarPageState extends State<CalendarPage> {
                 fontWeight: FontWeight.w600,
               ),
             ),
+            availableGestures: AvailableGestures.horizontalSwipe,
+            availableCalendarFormats: const {
+              CalendarFormat.month: 'Month',
+            },
+            daysOfWeekHeight: 40,
+            rowHeight: 48,
+            sixWeekMonthsEnforced: true,
           ),
         ),
         const SizedBox(height: 20),
@@ -240,7 +244,9 @@ class _CalendarPageState extends State<CalendarPage> {
                   DateFormatter.formatDate(_selectedDay!),
                   style: const TextStyle(
                     fontSize: 18,
-                    fontWeight: FontWeight.bold,
+                    fontFamily: 'Poppins',
+                    fontWeight: FontWeight.w600,
+                    color: Colors.white,
                   ),
                 ),
                 IconButton(
@@ -268,6 +274,9 @@ class _CalendarPageState extends State<CalendarPage> {
                     'Select a date to see events',
                     style: TextStyle(
                       color: Colors.white.withOpacity(0.6),
+                      fontFamily: 'Poppins',
+                      fontSize: 16,
+                      fontWeight: FontWeight.w500,
                     ),
                   ),
                 );
@@ -279,6 +288,9 @@ class _CalendarPageState extends State<CalendarPage> {
                         'No events for ${DateFormatter.formatDate(_selectedDay!)}',
                         style: TextStyle(
                           color: Colors.white.withOpacity(0.6),
+                          fontFamily: 'Poppins',
+                          fontSize: 16,
+                          fontWeight: FontWeight.w500,
                         ),
                       ),
                     )
@@ -291,14 +303,31 @@ class _CalendarPageState extends State<CalendarPage> {
                             horizontal: 16,
                             vertical: 4,
                           ),
+                          color: Colors.white.withOpacity(0.05),
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(12),
+                          ),
                           child: ListTile(
+                            contentPadding: const EdgeInsets.symmetric(
+                              horizontal: 16,
+                              vertical: 8,
+                            ),
                             leading: Icon(
-                              event['type'] == 'todo' ? Icons.check_circle_outline : Icons.note,
-                              color: event['type'] == 'todo' ? Colors.blue : Colors.green,
+                              event['type'] == 'todo' 
+                                  ? Icons.check_circle_outline 
+                                  : Icons.note,
+                              color: event['type'] == 'todo' 
+                                  ? const Color(0xFF8E2DE2) 
+                                  : Colors.green,
+                              size: 28,
                             ),
                             title: Text(
                               event['text'],
                               style: TextStyle(
+                                color: Colors.white,
+                                fontSize: 16,
+                                fontFamily: 'Poppins',
+                                fontWeight: FontWeight.w500,
                                 decoration: event['type'] == 'todo' && event['completed'] == true
                                     ? TextDecoration.lineThrough
                                     : null,
@@ -306,19 +335,32 @@ class _CalendarPageState extends State<CalendarPage> {
                             ),
                             subtitle: Text(
                               DateFormatter.formatTime(event['date']),
+                              style: TextStyle(
+                                color: Colors.white.withOpacity(0.6),
+                                fontSize: 14,
+                                fontFamily: 'Poppins',
+                              ),
                             ),
                             trailing: event['type'] == 'todo'
-                                ? Checkbox(
-                                    value: event['completed'] ?? false,
-                                    onChanged: (bool? value) {
-                                      final todoIndex = appData.todos.indexWhere(
-                                        (todo) => todo['text'] == event['text'] &&
-                                                DateFormatter.isSameDay(todo['date'], event['date']),
-                                      );
-                                      if (todoIndex != -1) {
-                                        appData.toggleTodo(todoIndex);
-                                      }
-                                    },
+                                ? Transform.scale(
+                                    scale: 1.2,
+                                    child: Checkbox(
+                                      value: event['completed'] ?? false,
+                                      activeColor: const Color(0xFF8E2DE2),
+                                      checkColor: Colors.white,
+                                      shape: RoundedRectangleBorder(
+                                        borderRadius: BorderRadius.circular(4),
+                                      ),
+                                      onChanged: (bool? value) {
+                                        final todoIndex = appData.todos.indexWhere(
+                                          (todo) => todo['text'] == event['text'] &&
+                                                  DateFormatter.isSameDay(todo['date'], event['date']),
+                                        );
+                                        if (todoIndex != -1) {
+                                          appData.toggleTodo(todoIndex);
+                                        }
+                                      },
+                                    ),
                                   )
                                 : null,
                           ),
