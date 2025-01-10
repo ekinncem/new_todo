@@ -356,6 +356,7 @@ class _HomeScreenState extends State<HomeScreen> with SingleTickerProviderStateM
             ),
             child: Container(
               margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 20),
+              padding: const EdgeInsets.only(top: 12),
               decoration: BoxDecoration(
                 color: Colors.white.withOpacity(0.05),
                 borderRadius: BorderRadius.circular(24),
@@ -369,13 +370,25 @@ class _HomeScreenState extends State<HomeScreen> with SingleTickerProviderStateM
                 elevation: 0,
                 items: const [
                   BottomNavigationBarItem(
-                    icon: Icon(Icons.home_outlined),
-                    activeIcon: Icon(Icons.home),
+                    icon: Padding(
+                      padding: EdgeInsets.only(top: 12, bottom: 8),
+                      child: Icon(Icons.home_outlined, size: 28),
+                    ),
+                    activeIcon: Padding(
+                      padding: EdgeInsets.only(top: 12, bottom: 8),
+                      child: Icon(Icons.home, size: 28),
+                    ),
                     label: 'Home',
                   ),
                   BottomNavigationBarItem(
-                    icon: Icon(Icons.calendar_today_outlined),
-                    activeIcon: Icon(Icons.calendar_today),
+                    icon: Padding(
+                      padding: EdgeInsets.only(top: 12, bottom: 8),
+                      child: Icon(Icons.calendar_today_outlined, size: 28),
+                    ),
+                    activeIcon: Padding(
+                      padding: EdgeInsets.only(top: 12, bottom: 8),
+                      child: Icon(Icons.calendar_today, size: 28),
+                    ),
                     label: 'Calendar',
                   ),
                 ],
@@ -387,6 +400,8 @@ class _HomeScreenState extends State<HomeScreen> with SingleTickerProviderStateM
                     _selectedIndex = index;
                   });
                 },
+                selectedLabelStyle: const TextStyle(height: 0.5),
+                unselectedLabelStyle: const TextStyle(height: 0.5),
               ),
             ),
           ),

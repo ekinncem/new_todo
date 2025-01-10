@@ -129,44 +129,102 @@ class _CalendarPageState extends State<CalendarPage> {
               isTodayHighlighted: true,
               outsideDaysVisible: false,
               
-              defaultTextStyle: const TextStyle(color: Colors.white70),
-              weekendTextStyle: const TextStyle(color: Colors.white70),
-              outsideTextStyle: const TextStyle(color: Colors.white38),
+              defaultTextStyle: const TextStyle(
+                color: Colors.white70,
+                fontSize: 16,
+                fontFamily: 'Poppins',
+                fontWeight: FontWeight.w500,
+              ),
+              
+              weekendTextStyle: const TextStyle(
+                color: Colors.white70,
+                fontSize: 16,
+                fontFamily: 'Poppins',
+                fontWeight: FontWeight.w500,
+              ),
               
               selectedDecoration: BoxDecoration(
-                color: const Color(0xFF5B5FC7),
-                shape: BoxShape.circle,
+                gradient: const LinearGradient(
+                  begin: Alignment.topLeft,
+                  end: Alignment.bottomRight,
+                  colors: [Color(0xFF8E2DE2), Color(0xFF4A00E0)],
+                ),
+                borderRadius: BorderRadius.circular(12),
+                boxShadow: [
+                  BoxShadow(
+                    color: const Color(0xFF8E2DE2).withOpacity(0.3),
+                    blurRadius: 8,
+                    offset: const Offset(0, 4),
+                  ),
+                ],
               ),
-              selectedTextStyle: const TextStyle(color: Colors.white),
+              selectedTextStyle: const TextStyle(
+                color: Colors.white,
+                fontSize: 18,
+                fontFamily: 'Poppins',
+                fontWeight: FontWeight.bold,
+              ),
               
               todayDecoration: BoxDecoration(
-                border: Border.all(color: const Color(0xFF5B5FC7), width: 1.5),
-                shape: BoxShape.circle,
+                border: Border.all(
+                  color: const Color(0xFF8E2DE2),
+                  width: 2,
+                ),
+                borderRadius: BorderRadius.circular(12),
               ),
-              todayTextStyle: const TextStyle(color: Colors.white),
+              todayTextStyle: const TextStyle(
+                color: Color(0xFF8E2DE2),
+                fontSize: 16,
+                fontFamily: 'Poppins',
+                fontWeight: FontWeight.bold,
+              ),
 
-              markerDecoration: const BoxDecoration(
-                color: Color(0xFF5B5FC7),
-                shape: BoxShape.circle,
+              markerDecoration: BoxDecoration(
+                color: const Color(0xFF8E2DE2),
+                borderRadius: BorderRadius.circular(4),
+                boxShadow: [
+                  BoxShadow(
+                    color: const Color(0xFF8E2DE2).withOpacity(0.3),
+                    blurRadius: 4,
+                    offset: const Offset(0, 2),
+                  ),
+                ],
               ),
-              markerSize: 5,
+              markerSize: 6,
               markersMaxCount: 1,
+              
+              outsideTextStyle: TextStyle(
+                color: Colors.white.withOpacity(0.3),
+                fontSize: 16,
+                fontFamily: 'Poppins',
+              ),
             ),
             
             headerStyle: const HeaderStyle(
               titleTextStyle: TextStyle(
                 color: Colors.white,
-                fontSize: 20,
-                fontWeight: FontWeight.w500,
+                fontSize: 22,
+                fontFamily: 'Poppins',
+                fontWeight: FontWeight.w600,
               ),
               formatButtonVisible: false,
-              leftChevronIcon: Icon(Icons.chevron_left, color: Colors.white70),
-              rightChevronIcon: Icon(Icons.chevron_right, color: Colors.white70),
+              leftChevronIcon: Icon(Icons.chevron_left, color: Colors.white70, size: 28),
+              rightChevronIcon: Icon(Icons.chevron_right, color: Colors.white70, size: 28),
             ),
             
             daysOfWeekStyle: const DaysOfWeekStyle(
-              weekdayStyle: TextStyle(color: Colors.white54),
-              weekendStyle: TextStyle(color: Colors.white54),
+              weekdayStyle: TextStyle(
+                color: Colors.white70,
+                fontSize: 14,
+                fontFamily: 'Poppins',
+                fontWeight: FontWeight.w600,
+              ),
+              weekendStyle: TextStyle(
+                color: Colors.white70,
+                fontSize: 14,
+                fontFamily: 'Poppins',
+                fontWeight: FontWeight.w600,
+              ),
             ),
           ),
         ),
