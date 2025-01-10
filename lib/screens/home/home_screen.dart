@@ -59,11 +59,27 @@ class _HomeScreenState extends State<HomeScreen> with SingleTickerProviderStateM
   }
 
   void _startImageTimer() {
-    _imageTimer = Timer.periodic(const Duration(seconds: 6), (timer) {
-      setState(() {
-        _currentImageIndex = (_currentImageIndex + 1) % _backgroundImages.length;
+    try {
+      _imageTimer = Timer.periodic(const Duration(seconds: 6), (timer) {
+        if (!mounted) {
+          timer.cancel();
+          return;
+        }
+        setState(() {
+          try {
+            _currentImageIndex = (_currentImageIndex + 1) % _backgroundImages.length;
+            debugPrint('Image changed to index: $_currentImageIndex');
+          } catch (e, stackTrace) {
+            debugPrint('Error changing image: $e');
+            debugPrint('Stack trace: $stackTrace');
+            timer.cancel();
+          }
+        });
       });
-    });
+    } catch (e, stackTrace) {
+      debugPrint('Error starting timer: $e');
+      debugPrint('Stack trace: $stackTrace');
+    }
   }
 
   Widget _buildFAB() {
@@ -114,8 +130,13 @@ class _HomeScreenState extends State<HomeScreen> with SingleTickerProviderStateM
 
   @override
   void dispose() {
-    _imageTimer?.cancel();
-    _fabAnimationController?.dispose();
+    try {
+      _imageTimer?.cancel();
+      _fabAnimationController?.dispose();
+    } catch (e, stackTrace) {
+      debugPrint('Error in dispose: $e');
+      debugPrint('Stack trace: $stackTrace');
+    }
     super.dispose();
   }
 
@@ -247,29 +268,39 @@ class _HomeScreenState extends State<HomeScreen> with SingleTickerProviderStateM
                 child: child,
               );
             },
-            child: Container(
-              key: ValueKey<int>(_currentImageIndex),
-              decoration: BoxDecoration(
-                gradient: LinearGradient(
-                  begin: Alignment.topCenter,
-                  end: Alignment.bottomCenter,
-                  colors: [
-                    Colors.black.withOpacity(0.6),  // Üst fade artırıldı
-                    Colors.black.withOpacity(0.1),  // Orta kısım daha şeffaf
-                    Colors.black.withOpacity(0.6),  // Alt fade artırıldı
-                  ],
-                  stops: const [0.0, 0.5, 1.0],  // Gradient dağılımı ayarlandı
-                ),
-                image: DecorationImage(
-                  image: AssetImage(_backgroundImages[_currentImageIndex]),
-                  fit: BoxFit.cover,
-                  opacity: 0.3,
-                  colorFilter: ColorFilter.mode(
-                    Colors.black.withOpacity(0.2),
-                    BlendMode.softLight,
-                  ),
-                ),
-              ),
+            child: Builder(
+              builder: (context) {
+                try {
+                  return Container(
+                    key: ValueKey<int>(_currentImageIndex),
+                    decoration: BoxDecoration(
+                      gradient: LinearGradient(
+                        begin: Alignment.topCenter,
+                        end: Alignment.bottomCenter,
+                        colors: [
+                          Colors.black.withOpacity(0.6),
+                          Colors.black.withOpacity(0.1),
+                          Colors.black.withOpacity(0.6),
+                        ],
+                        stops: const [0.0, 0.5, 1.0],
+                      ),
+                      image: DecorationImage(
+                        image: AssetImage(_backgroundImages[_currentImageIndex]),
+                        fit: BoxFit.cover,
+                        opacity: 0.3,
+                        colorFilter: ColorFilter.mode(
+                          Colors.black.withOpacity(0.2),
+                          BlendMode.softLight,
+                        ),
+                      ),
+                    ),
+                  );
+                } catch (e, stackTrace) {
+                  debugPrint('Error rendering background: $e');
+                  debugPrint('Stack trace: $stackTrace');
+                  return Container(color: Colors.black);  // Fallback arka plan
+                }
+              },
             ),
           ),
         ),
