@@ -6,6 +6,7 @@ import 'package:sqflite/sqflite.dart';
 import 'package:todo_app/models/app_data.dart';
 import 'package:todo_app/models/user_data.dart';
 import 'package:todo_app/screens/home/home_screen.dart';
+import 'package:todo_app/widgets/error_boundary.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -25,12 +26,14 @@ void main() async {
   await userData.init(); // Kullanıcı verilerini başlat
 
   runApp(
-    MultiProvider(
-      providers: [
-        ChangeNotifierProvider(create: (_) => appData),
-        ChangeNotifierProvider(create: (_) => userData),
-      ],
-      child: const MyApp(),
+    ErrorBoundary(
+      child: MultiProvider(
+        providers: [
+          ChangeNotifierProvider(create: (_) => appData),
+          ChangeNotifierProvider(create: (_) => userData),
+        ],
+        child: const MyApp(),
+      ),
     ),
   );
 }

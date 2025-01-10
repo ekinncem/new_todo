@@ -276,8 +276,8 @@ class _HomeScreenState extends State<HomeScreen> with SingleTickerProviderStateM
     return Stack(
       children: [
         // Arka plan resmi
-        RepaintBoundary( // Gereksiz yeniden çizimleri önle
-          child: Positioned.fill(
+        SizedBox.expand(
+          child: RepaintBoundary(
             child: ShaderMask(
               shaderCallback: (Rect bounds) {
                 return LinearGradient(
@@ -294,15 +294,6 @@ class _HomeScreenState extends State<HomeScreen> with SingleTickerProviderStateM
               blendMode: BlendMode.dstIn,
               child: AnimatedSwitcher(
                 duration: const Duration(milliseconds: 3000),
-                transitionBuilder: (Widget child, Animation<double> animation) {
-                  return FadeTransition(
-                    opacity: CurvedAnimation(
-                      parent: animation,
-                      curve: Curves.easeInOut,
-                    ),
-                    child: child,
-                  );
-                },
                 child: Container(
                   key: ValueKey<int>(_currentImageIndex),
                   decoration: BoxDecoration(
