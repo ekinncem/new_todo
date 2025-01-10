@@ -162,13 +162,14 @@ class _CalendarPageState extends State<CalendarPage> {
                   shaderCallback: (Rect bounds) {
                     return LinearGradient(
                       begin: Alignment.topCenter,
-                      end: Alignment.center,
+                      end: Alignment.bottomCenter,
                       colors: [
                         Colors.transparent,
-                        Colors.black.withOpacity(0.9),
+                        Colors.black.withOpacity(0.95),
+                        Colors.black,
                         Colors.black,
                       ],
-                      stops: const [0.0, 0.15, 0.3],
+                      stops: const [0.0, 0.2, 0.4, 0.6],
                     ).createShader(bounds);
                   },
                   blendMode: BlendMode.dstIn,
@@ -194,9 +195,9 @@ class _CalendarPageState extends State<CalendarPage> {
                         image: DecorationImage(
                           image: AssetImage(_backgroundImages[_currentImageIndex]),
                           fit: BoxFit.cover,
-                          opacity: 0.6,
+                          opacity: 0.5,
                           colorFilter: ColorFilter.mode(
-                            Colors.black.withOpacity(0.2),
+                            Colors.black.withOpacity(0.25),
                             BlendMode.darken,
                           ),
                         ),
