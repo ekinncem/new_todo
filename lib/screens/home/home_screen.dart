@@ -250,11 +250,10 @@ class _HomeScreenState extends State<HomeScreen> with SingleTickerProviderStateM
                 end: Alignment.bottomCenter,
                 colors: [
                   Colors.transparent,
-                  Colors.black.withOpacity(0.98),
-                  Colors.black,
+                  Colors.black.withOpacity(0.85),
                   Colors.black,
                 ],
-                stops: const [0.0, 0.15, 0.35, 0.6],
+                stops: const [0.0, 0.3, 0.7],
               ).createShader(bounds);
             },
             blendMode: BlendMode.dstIn,
@@ -275,9 +274,9 @@ class _HomeScreenState extends State<HomeScreen> with SingleTickerProviderStateM
                   image: DecorationImage(
                     image: AssetImage(_backgroundImages[_currentImageIndex]),
                     fit: BoxFit.cover,
-                    opacity: 0.35,
+                    opacity: 0.25,
                     colorFilter: ColorFilter.mode(
-                      Colors.black.withOpacity(0.3),
+                      Colors.black.withOpacity(0.25),
                       BlendMode.softLight,
                     ),
                   ),
