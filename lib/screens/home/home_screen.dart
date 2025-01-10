@@ -313,52 +313,54 @@ class _HomeScreenState extends State<HomeScreen> with SingleTickerProviderStateM
             backgroundColor: Colors.transparent,
             elevation: 0,
             automaticallyImplyLeading: false,
-            actions: [
-              Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 16),
-                child: GestureDetector(
-                  onTap: () {
-                    showDialog(
-                      context: context,
-                      builder: (context) => const EditProfileDialog(),
+            leading: Padding(
+              padding: const EdgeInsets.all(8),
+              child: GestureDetector(
+                onTap: () {
+                  showDialog(
+                    context: context,
+                    builder: (context) => const EditProfileDialog(),
+                  );
+                },
+                child: Consumer<UserData>(
+                  builder: (context, userData, child) {
+                    return Container(
+                      decoration: BoxDecoration(
+                        shape: BoxShape.circle,
+                        border: Border.all(
+                          color: Colors.white24,
+                          width: 2,
+                        ),
+                      ),
+                      child: CircleAvatar(
+                        radius: 24,
+                        backgroundColor: const Color(0xFF2D2F39),
+                        child: userData.photoUrl != null
+                            ? ClipOval(
+                                child: Image.network(
+                                  userData.photoUrl!,
+                                  width: 48,
+                                  height: 48,
+                                  fit: BoxFit.cover,
+                                ),
+                              )
+                            : Text(
+                                userData.name?.isNotEmpty == true
+                                    ? userData.name![0].toUpperCase()
+                                    : '?',
+                                style: const TextStyle(
+                                  color: Colors.white,
+                                  fontSize: 20,
+                                  fontFamily: 'Poppins',
+                                  fontWeight: FontWeight.bold,
+                                ),
+                              ),
+                      ),
                     );
                   },
-                  child: Consumer<UserData>(
-                    builder: (context, userData, child) {
-                      return Container(
-                        decoration: BoxDecoration(
-                          shape: BoxShape.circle,
-                          border: Border.all(color: Colors.white24),
-                        ),
-                        child: CircleAvatar(
-                          radius: 18,
-                          backgroundColor: Colors.transparent,
-                          child: userData.photoUrl != null
-                              ? ClipOval(
-                                  child: Image.network(
-                                    userData.photoUrl!,
-                                    width: 36,
-                                    height: 36,
-                                    fit: BoxFit.cover,
-                                  ),
-                                )
-                              : Text(
-                                  userData.name?.isNotEmpty == true
-                                      ? userData.name![0].toUpperCase()
-                                      : '?',
-                                  style: const TextStyle(
-                                    color: Colors.white70,
-                                    fontSize: 16,
-                                    fontWeight: FontWeight.bold,
-                                  ),
-                                ),
-                        ),
-                      );
-                    },
-                  ),
                 ),
               ),
-            ],
+            ),
           ),
           body: IndexedStack( // Sayfalar arası geçişi optimize et
             index: _selectedIndex,
