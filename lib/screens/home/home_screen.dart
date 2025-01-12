@@ -24,6 +24,7 @@ class _HomeScreenState extends State<HomeScreen> with SingleTickerProviderStateM
   Animation<double>? _fabRotateAnimation;
   int _currentImageIndex = 0;
   Timer? _imageTimer;
+  double _opacity = 1.0;
 
   final List<String> _backgroundImages = [
     'assets/images/image1.jpg',
@@ -67,14 +68,16 @@ class _HomeScreenState extends State<HomeScreen> with SingleTickerProviderStateM
         timer.cancel();
         return;
       }
-      try {
+      setState(() {
+        _opacity = 0.0;
+      });
+
+      Future.delayed(const Duration(milliseconds: 500), () {
         setState(() {
           _currentImageIndex = (_currentImageIndex + 1) % _backgroundImages.length;
+          _opacity = 1.0;
         });
-      } catch (e) {
-        debugPrint('Timer error: $e');
-        timer.cancel();
-      }
+      });
     });
   }
 
@@ -281,28 +284,31 @@ class _HomeScreenState extends State<HomeScreen> with SingleTickerProviderStateM
     return Stack(
       children: [
         // Arka plan resmi
-        SizedBox.expand(
+        AnimatedOpacity(
+          opacity: _opacity,
+          duration: const Duration(milliseconds: 500),
           child: Container(
             decoration: BoxDecoration(
               image: DecorationImage(
                 image: AssetImage(_backgroundImages[_currentImageIndex]),
                 fit: BoxFit.cover,
-                opacity: 0.25,
-                colorFilter: ColorFilter.mode(
-                  Colors.black.withOpacity(0.25),
-                  BlendMode.softLight,
-                ),
               ),
-              gradient: LinearGradient(
-                begin: Alignment.topCenter,
-                end: Alignment.bottomCenter,
-                colors: [
-                  Colors.transparent,
-                  Colors.black.withOpacity(0.85),
-                  Colors.black,
-                ],
-                stops: const [0.0, 0.3, 0.7],
-              ),
+            ),
+          ),
+        ),
+        // Fade efekti için üst ve alt kısımlar
+        Container(
+          decoration: BoxDecoration(
+            gradient: LinearGradient(
+              begin: Alignment.topCenter,
+              end: Alignment.bottomCenter,
+              colors: [
+                Colors.black.withOpacity(0.8),
+                Colors.transparent,
+                Colors.transparent,
+                Colors.black.withOpacity(0.8),
+              ],
+              stops: const [0.0, 0.3, 0.7, 1.0],
             ),
           ),
         ),
