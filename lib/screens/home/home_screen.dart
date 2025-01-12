@@ -296,20 +296,12 @@ class _HomeScreenState extends State<HomeScreen> with SingleTickerProviderStateM
             ),
           ),
         ),
-        // Fade efekti için üst ve alt kısımlar
-        Container(
-          decoration: BoxDecoration(
-            gradient: LinearGradient(
-              begin: Alignment.topCenter,
-              end: Alignment.bottomCenter,
-              colors: [
-                Colors.black.withOpacity(0.95),
-                Colors.transparent,
-                Colors.transparent,
-                Colors.black.withOpacity(0.95),
-              ],
-              stops: const [0.0, 0.3, 0.7, 1.0],
-            ),
+        // Resmin kendisini karartmak için başka bir AnimatedOpacity ekleyin
+        AnimatedOpacity(
+          opacity: 0.5,
+          duration: const Duration(milliseconds: 500),
+          child: Container(
+            color: Colors.black,
           ),
         ),
         
