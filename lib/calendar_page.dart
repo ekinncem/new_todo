@@ -54,12 +54,12 @@ class _CalendarPageState extends State<CalendarPage> {
       context: context,
       builder: (context) => AddItemDialog(
         selectedDate: selectedDate,
-        onAdd: (text, type, priority) {
+        onAdd: (title, content, type, priority) {
           final appData = context.read<AppData>();
           if (type == 'todo') {
-            appData.addTodo(text, date: selectedDate, priority: priority);
+            appData.addTodo(title, date: selectedDate, priority: priority);
           } else {
-            appData.addNote(text, date: selectedDate, priority: priority);
+            appData.addNote(content, date: selectedDate, priority: priority);
           }
         },
       ),
