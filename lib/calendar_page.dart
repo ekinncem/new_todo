@@ -54,12 +54,12 @@ class _CalendarPageState extends State<CalendarPage> {
       context: context,
       builder: (context) => AddItemDialog(
         selectedDate: selectedDate,
-        onAdd: (title, content, type, priority) {
+        onAdd: (text, type, priority) {
           final appData = context.read<AppData>();
           if (type == 'todo') {
-            appData.addTodo(title, date: selectedDate, priority: priority);
+            appData.addTodo(text, date: selectedDate, priority: priority);
           } else {
-            appData.addNote(content, date: selectedDate, priority: priority);
+            appData.addNote(text, date: selectedDate, priority: priority);
           }
         },
       ),
@@ -67,33 +67,37 @@ class _CalendarPageState extends State<CalendarPage> {
   }
 
   List<Map<String, dynamic>> _getEventsForDay(DateTime day, AppData appData) {
-    final List<Map<String, dynamic>> events = [];
+    try {
+      final List<Map<String, dynamic>> events = [];
 
-    // To-do'ları ekle
-    for (var todo in appData.todos) {
-      if (DateFormatter.isSameDay(todo['date'], day)) {
-        events.add({
-          'title': todo['text'],
-          'content': 'Todo Content', // İçerik ekleyin
-          'type': 'todo',
-          'date': todo['date'],
-        });
+      // To-do'ları ekle
+      for (var todo in appData.todos) {
+        if (DateFormatter.isSameDay(todo['date'], day)) {
+          debugPrint('Todo bulundu: ${todo['text']}');
+          events.add({
+            ...todo,
+            'type': 'todo',
+          });
+        }
       }
-    }
 
-    // Notları ekle
-    for (var note in appData.notes) {
-      if (DateFormatter.isSameDay(note['date'], day)) {
-        events.add({
-          'title': note['text'],
-          'content': 'Note Content', // İçerik ekleyin
-          'type': 'note',
-          'date': note['date'],
-        });
+      // Notları ekle
+      for (var note in appData.notes) {
+        if (DateFormatter.isSameDay(note['date'], day)) {
+          debugPrint('Not bulundu: ${note['text']}');
+          events.add({
+            ...note,
+            'type': 'note',
+          });
+        }
       }
-    }
 
-    return events;
+      return events;
+    } catch (e, stackTrace) {
+      debugPrint('Event getirme hatası: $e');
+      debugPrint('Stack trace: $stackTrace');
+      return [];
+    }
   }
 
   @override
@@ -310,7 +314,7 @@ class _CalendarPageState extends State<CalendarPage> {
                               size: 28,
                             ),
                             title: Text(
-                              event['title'],
+                              event['text'],
                               style: TextStyle(
                                 color: Colors.white,
                                 fontSize: 16,
@@ -322,7 +326,7 @@ class _CalendarPageState extends State<CalendarPage> {
                               ),
                             ),
                             subtitle: Text(
-                              event['content'],
+                              DateFormatter.formatTime(event['date']),
                               style: TextStyle(
                                 color: Colors.white.withOpacity(0.6),
                                 fontSize: 14,
@@ -344,7 +348,7 @@ class _CalendarPageState extends State<CalendarPage> {
                                       ),
                                       onChanged: (bool? value) {
                                         final todoIndex = appData.todos.indexWhere(
-                                          (todo) => todo['text'] == event['title'] &&
+                                          (todo) => todo['text'] == event['text'] &&
                                                   DateFormatter.isSameDay(todo['date'], event['date']),
                                         );
                                         if (todoIndex != -1) {
