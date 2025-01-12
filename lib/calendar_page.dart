@@ -67,37 +67,33 @@ class _CalendarPageState extends State<CalendarPage> {
   }
 
   List<Map<String, dynamic>> _getEventsForDay(DateTime day, AppData appData) {
-    try {
-      final List<Map<String, dynamic>> events = [];
+    final List<Map<String, dynamic>> events = [];
 
-      // To-do'ları ekle
-      for (var todo in appData.todos) {
-        if (DateFormatter.isSameDay(todo['date'], day)) {
-          debugPrint('Todo bulundu: ${todo['text']}');
-          events.add({
-            ...todo,
-            'type': 'todo',
-          });
-        }
+    // To-do'ları ekle
+    for (var todo in appData.todos) {
+      if (DateFormatter.isSameDay(todo['date'], day)) {
+        events.add({
+          'title': todo['text'],
+          'content': 'Todo Content', // İçerik ekleyin
+          'type': 'todo',
+          'date': todo['date'],
+        });
       }
-
-      // Notları ekle
-      for (var note in appData.notes) {
-        if (DateFormatter.isSameDay(note['date'], day)) {
-          debugPrint('Not bulundu: ${note['text']}');
-          events.add({
-            ...note,
-            'type': 'note',
-          });
-        }
-      }
-
-      return events;
-    } catch (e, stackTrace) {
-      debugPrint('Event getirme hatası: $e');
-      debugPrint('Stack trace: $stackTrace');
-      return [];
     }
+
+    // Notları ekle
+    for (var note in appData.notes) {
+      if (DateFormatter.isSameDay(note['date'], day)) {
+        events.add({
+          'title': note['text'],
+          'content': 'Note Content', // İçerik ekleyin
+          'type': 'note',
+          'date': note['date'],
+        });
+      }
+    }
+
+    return events;
   }
 
   @override
@@ -314,7 +310,7 @@ class _CalendarPageState extends State<CalendarPage> {
                               size: 28,
                             ),
                             title: Text(
-                              event['text'],
+                              event['title'],
                               style: TextStyle(
                                 color: Colors.white,
                                 fontSize: 16,
@@ -326,7 +322,7 @@ class _CalendarPageState extends State<CalendarPage> {
                               ),
                             ),
                             subtitle: Text(
-                              DateFormatter.formatTime(event['date']),
+                              event['content'],
                               style: TextStyle(
                                 color: Colors.white.withOpacity(0.6),
                                 fontSize: 14,
@@ -348,7 +344,7 @@ class _CalendarPageState extends State<CalendarPage> {
                                       ),
                                       onChanged: (bool? value) {
                                         final todoIndex = appData.todos.indexWhere(
-                                          (todo) => todo['text'] == event['text'] &&
+                                          (todo) => todo['text'] == event['title'] &&
                                                   DateFormatter.isSameDay(todo['date'], event['date']),
                                         );
                                         if (todoIndex != -1) {
