@@ -303,10 +303,10 @@ class _HomeScreenState extends State<HomeScreen> with SingleTickerProviderStateM
               begin: Alignment.topCenter,
               end: Alignment.bottomCenter,
               colors: [
-                Colors.black.withOpacity(0.8),
+                Colors.black.withOpacity(0.95),
                 Colors.transparent,
                 Colors.transparent,
-                Colors.black.withOpacity(0.8),
+                Colors.black.withOpacity(0.95),
               ],
               stops: const [0.0, 0.3, 0.7, 1.0],
             ),
