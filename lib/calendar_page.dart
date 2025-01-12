@@ -249,14 +249,6 @@ class _CalendarPageState extends State<CalendarPage> {
                     color: Colors.white,
                   ),
                 ),
-                IconButton(
-                  icon: const Icon(
-                    Icons.add_circle_outline,
-                    color: Color(0xFF8E2DE2),
-                    size: 28,
-                  ),
-                  onPressed: () => _showAddDialog(context, _selectedDay!),
-                ),
               ],
             ),
           ),
