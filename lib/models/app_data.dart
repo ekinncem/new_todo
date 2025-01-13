@@ -11,6 +11,7 @@ class AppData with ChangeNotifier {
 
   List<Map<String, dynamic>> get todos => _todos;
   List<Map<String, dynamic>> get notes => _notes;
+  Map<DateTime, List<String>> get events => _events;
 
   Future<void> init() async {
     if (_db != null) return;
@@ -34,9 +35,15 @@ class AppData with ChangeNotifier {
         await db.execute('''
           CREATE TABLE notes(
             id INTEGER PRIMARY KEY AUTOINCREMENT,
-            text TEXT,
-            date INTEGER,
-            priority TEXT DEFAULT 'normal'
+            content TEXT,
+            date INTEGER
+          )
+        ''');
+        await db.execute('''
+          CREATE TABLE events(
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            title TEXT,
+            date INTEGER
           )
         ''');
       },
@@ -55,18 +62,18 @@ class AppData with ChangeNotifier {
       debugPrint('Veritabanından veriler yükleniyor...');
       final List<Map<String, dynamic>> todoList = await _db!.query('todos');
       final List<Map<String, dynamic>> noteList = await _db!.query('notes');
-      
+
       _todos = todoList.map((todo) => {
         ...todo,
         'date': DateTime.fromMillisecondsSinceEpoch(todo['date'] as int),
         'completed': todo['completed'] == 1,
       }).toList();
-      
+
       _notes = noteList.map((note) => {
         ...note,
         'date': DateTime.fromMillisecondsSinceEpoch(note['date'] as int),
       }).toList();
-      
+
       debugPrint('Yüklenen todo sayısı: ${_todos.length}');
       debugPrint('Yüklenen not sayısı: ${_notes.length}');
       notifyListeners();
@@ -99,11 +106,11 @@ class AppData with ChangeNotifier {
           'completed': false,
           'priority': priority,
         });
-        debugPrint('Todo eklendi: $text');
         notifyListeners();
       }
-    } catch (e) {
+    } catch (e, stackTrace) {
       debugPrint('Todo ekleme hatası: $e');
+      debugPrint('Stack trace: $stackTrace');
     }
   }
 
@@ -123,6 +130,7 @@ class AppData with ChangeNotifier {
 
   Future<void> addNote(String text, {required DateTime date, String priority = 'normal'}) async {
     try {
+      debugPrint('Not ekleniyor: $text, tarih: $date');
       final id = await _db?.insert('notes', {
         'text': text,
         'date': date.millisecondsSinceEpoch,
@@ -136,11 +144,11 @@ class AppData with ChangeNotifier {
           'date': date,
           'priority': priority,
         });
-        debugPrint('Not eklendi: $text');
         notifyListeners();
       }
-    } catch (e) {
+    } catch (e, stackTrace) {
       debugPrint('Not ekleme hatası: $e');
+      debugPrint('Stack trace: $stackTrace');
     }
   }
 
@@ -151,22 +159,77 @@ class AppData with ChangeNotifier {
     }
   }
 
-  void addEvent(DateTime date, String event, {String type = 'event'}) {
-    if (_events[date] == null) {
-      _events[date] = [];
+  Future<void> addEvent(DateTime selectedDate, String title) async {
+    if (_db == null) return;
+
+    // Normalize the date to remove time component
+    final DateTime normalizedDate = DateTime(
+      selectedDate.year,
+      selectedDate.month,
+      selectedDate.day,
+    );
+
+    await _db!.insert('events', {
+      'title': title,
+      'date': normalizedDate.millisecondsSinceEpoch,
+    });
+
+    if (!_events.containsKey(normalizedDate)) {
+      _events[normalizedDate] = [];
     }
-    _events[date]!.add(event);
+    _events[normalizedDate]!.add(title);
     notifyListeners();
   }
 
-  void removeEvent(DateTime date, int index) {
-    if (_events[date] != null && index >= 0 && index < _events[date]!.length) {
-      _events[date]!.removeAt(index);
-      if (_events[date]!.isEmpty) {
-        _events.remove(date);
+  List<Map<String, dynamic>> getEventsForDate(DateTime date) {
+    final DateTime normalizedDate = DateTime(date.year, date.month, date.day);
+    final events = _events[normalizedDate] ?? [];
+    return events.map((title) => {
+      'title': title,
+      'date': normalizedDate,
+    }).toList();
+  }
+
+  Future<void> loadEvents() async {
+    if (_db == null) return;
+
+    final eventsList = await _db!.query('events');
+    _events.clear();
+
+    for (var event in eventsList) {
+      final date = DateTime.fromMillisecondsSinceEpoch(event['date'] as int);
+      final normalizedDate = DateTime(date.year, date.month, date.day);
+
+      if (!_events.containsKey(normalizedDate)) {
+        _events[normalizedDate] = [];
       }
-      notifyListeners();
+      _events[normalizedDate]!.add(event['title'] as String);
     }
+    notifyListeners();
+  }
+
+  Future<void> removeEvent(DateTime date, String title) async {
+    if (_db == null) return;
+
+    final DateTime normalizedDate = DateTime(
+      date.year,
+      date.month,
+      date.day,
+    );
+
+    await _db!.delete(
+      'events',
+      where: 'date = ? AND title = ?',
+      whereArgs: [normalizedDate.millisecondsSinceEpoch, title],
+    );
+
+    if (_events.containsKey(normalizedDate)) {
+      _events[normalizedDate]!.remove(title);
+      if (_events[normalizedDate]!.isEmpty) {
+        _events.remove(normalizedDate);
+      }
+    }
+    notifyListeners();
   }
 
   Future<void> deleteTodo(int id) async {
