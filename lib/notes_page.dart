@@ -14,9 +14,9 @@ class _NotesPageState extends State<NotesPage> {
   final TextEditingController _textController = TextEditingController();
   DateTime? _selectedDate;
 
-  void _addNote() {
+  void _addNote() async {
     if (_textController.text.isNotEmpty) {
-      context.read<AppData>().addNote(
+      await context.read<AppData>().addNote(
         _textController.text, 
         date: _selectedDate ?? DateTime.now(),
       );

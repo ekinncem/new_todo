@@ -14,9 +14,9 @@ class _TodoPageState extends State<TodoPage> {
   final TextEditingController _textController = TextEditingController();
   DateTime? _selectedDate;
 
-  void _addTodo() {
+  void _addTodo() async {
     if (_textController.text.isNotEmpty) {
-      context.read<AppData>().addTodo(
+      await context.read<AppData>().addTodo(
         _textController.text, 
         date: _selectedDate ?? DateTime.now(),
       );

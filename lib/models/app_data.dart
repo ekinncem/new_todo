@@ -84,28 +84,26 @@ class AppData with ChangeNotifier {
 
   Future<void> addTodo(String text, {required DateTime date, String priority = 'normal'}) async {
     try {
-      await Future.microtask(() async {
-        final id = await _db?.insert('todos', {
+      final id = await _db?.insert('todos', {
+        'text': text,
+        'date': date.millisecondsSinceEpoch,
+        'completed': 0,
+        'priority': priority,
+      });
+
+      if (id != null) {
+        _todos.add({
+          'id': id,
           'text': text,
-          'date': date.millisecondsSinceEpoch,
-          'completed': 0,
+          'date': date,
+          'completed': false,
           'priority': priority,
         });
-        
-        if (id != null) {
-          _todos.add({
-            'id': id,
-            'text': text,
-            'date': date,
-            'completed': false,
-            'priority': priority,
-          });
-          notifyListeners();
-        }
-      });
-    } catch (e, stackTrace) {
+        debugPrint('Todo eklendi: $text');
+        notifyListeners();
+      }
+    } catch (e) {
       debugPrint('Todo ekleme hatası: $e');
-      debugPrint('Stack trace: $stackTrace');
     }
   }
 
@@ -125,13 +123,12 @@ class AppData with ChangeNotifier {
 
   Future<void> addNote(String text, {required DateTime date, String priority = 'normal'}) async {
     try {
-      debugPrint('Not ekleniyor: $text, tarih: $date');
       final id = await _db?.insert('notes', {
         'text': text,
         'date': date.millisecondsSinceEpoch,
         'priority': priority,
       });
-      
+
       if (id != null) {
         _notes.add({
           'id': id,
@@ -139,11 +136,11 @@ class AppData with ChangeNotifier {
           'date': date,
           'priority': priority,
         });
+        debugPrint('Not eklendi: $text');
         notifyListeners();
       }
-    } catch (e, stackTrace) {
+    } catch (e) {
       debugPrint('Not ekleme hatası: $e');
-      debugPrint('Stack trace: $stackTrace');
     }
   }
 
